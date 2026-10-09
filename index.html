@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Куда ставят крупные фонды: лонг или шорт по 15 фьючерсным рынкам по отчёту CFTC COT, с короткими аргументами ИИ.">
+<title>COT Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column. Asset picker → one verdict card (fund side, strength, weekly shift) → compact list of all markets */
+:root{
+  --bg:#F4F5F2; --surface:#FFFFFF; --sunk:#EEF0EC; --ink:#161A1D; --muted:#5F676D; --faint:#959CA1; --line:#DEE1DC;
+  --long:#14855A; --long-soft:#DFF1E8; --short:#C7392B; --short-soft:#F9E3E0; --accent:#161A1D;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111417; --surface:#181C20; --sunk:#1F2428; --ink:#E9ECEE; --muted:#A0A8AE; --faint:#6F777D; --line:#2B3136;
+  --long:#4FC98F; --long-soft:#163126; --short:#F27C6C; --short-soft:#3A1E1B; --accent:#E9ECEE; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111417; --surface:#181C20; --sunk:#1F2428; --ink:#E9ECEE; --muted:#A0A8AE; --faint:#6F777D; --line:#2B3136;
+  --long:#4FC98F; --long-soft:#163126; --short:#F27C6C; --short-soft:#3A1E1B; --accent:#E9ECEE; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:28px 56px;display:flex;flex-direction:column;gap:20px}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+header{display:flex;justify-content:space-between;align-items:baseline;gap:8px 16px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.01em}
+.asof{font-size:13px;color:var(--muted)}
+
+.picker{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.chip:hover{border-color:var(--muted)}
+.chip i{width:7px;height:7px;border-radius:50%}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 28px 24px}
+@media (max-width:520px){.verdict{padding:22px 18px 20px}}
+.v-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.v-name{font-size:15px;font-weight:600}
+.v-name span{color:var(--faint);font-family:var(--f-mono);font-weight:400;font-size:13px;margin-left:6px}
+.v-px{font-size:13px;color:var(--muted)}
+.v-who{margin-top:22px;font-size:13px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.v-side{font-family:var(--f-display);font-weight:700;font-size:clamp(64px,16vw,112px);line-height:.95;letter-spacing:-.01em;margin:4px 0 6px}
+.v-side.long{color:var(--long)} .v-side.short{color:var(--short)}
+.v-line{font-size:18px;max-width:46ch}
+.v-line b{font-weight:600}
+
+.split{margin-top:22px}
+.split-bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--sunk)}
+.split-bar .l{background:var(--long)} .split-bar .s{background:var(--short)}
+.split-lab{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:6px}
+
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:22px;border-top:1px solid var(--line)}
+@media (max-width:560px){.facts{grid-template-columns:minmax(0,1fr)}}
+.fact{padding:14px 16px 0 0;min-width:0}
+.fact + .fact{padding-left:16px;border-left:1px solid var(--line)}
+@media (max-width:560px){.fact + .fact{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:12px;margin-top:12px}.fact{padding-top:12px}}
+.fact .k{font-size:12px;color:var(--muted)}
+.fact .v{font-size:16px;font-weight:600;margin-top:2px}
+.fact .d{font-size:12.5px;color:var(--faint)}
+.meter{position:relative;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--short),var(--sunk) 50%,var(--long));margin:8px 0 4px}
+.meter i{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--ink);transform:translate(-50%,-50%)}
+.up{color:var(--long)} .dn{color:var(--short)}
+
+.spark{margin-top:20px}
+.spark svg{display:block;width:100%;height:auto}
+.spark-cap{font-size:12px;color:var(--faint);display:flex;justify-content:space-between}
+
+.h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:8px 0 -8px}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.item{display:grid;grid-template-columns:minmax(0,1fr) 80px minmax(60px,140px) 26px;gap:12px;align-items:center;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:11px 18px;text-align:left;cursor:pointer}
+.item:first-child{border-top:0}
+.item:hover{background:var(--sunk)}
+.item[aria-current="true"]{background:var(--sunk)}
+.item .nm{font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:6px;justify-self:start}
+.tag.long{background:var(--long-soft);color:var(--long)} .tag.short{background:var(--short-soft);color:var(--short)}
+.mini{height:6px;border-radius:3px;background:var(--short);overflow:hidden}
+.mini i{display:block;height:100%;background:var(--long)}
+.arr{font-family:var(--f-mono);text-align:right;font-size:15px}
+@media (max-width:420px){.item{grid-template-columns:minmax(0,1fr) 70px 22px;padding:11px 14px}.item .mini{display:none}}
+
+.note{font-size:12.5px;color:var(--faint);line-height:1.55}
+
+.why{margin-top:20px;padding:16px 18px;border-radius:12px;background:var(--sunk)}
+.why-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.why-t{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.why ul{margin:10px 0 0;padding-left:18px}
+.why li{margin-bottom:6px;max-width:68ch}
+.why .use{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;max-width:68ch}
+.why .use b{font-weight:600}
+.why .cav{margin-top:6px;font-size:13px;color:var(--muted);max-width:68ch}
+.why-age{font-size:12px;color:var(--faint)}
+.why .muted{color:var(--muted);font-size:14px;margin:8px 0 0}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.think{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;margin-top:10px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ink);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+
+.rel{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);cursor:help;background:var(--surface)}
+.rel i{display:inline-flex;gap:2px}
+.rel i b{width:4px;height:10px;border-radius:1px;background:var(--line)}
+.rel i b.on{background:var(--ink)}
+.rel-note{font-size:13px;color:var(--muted);margin-top:8px;max-width:68ch}
+
+details.guide{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:0 22px}
+details.guide summary{cursor:pointer;padding:16px 0;font-weight:600;list-style-position:inside}
+details.guide[open] summary{border-bottom:1px solid var(--line)}
+.guide-body{padding:6px 0 18px;font-size:14.5px}
+.guide-body h4{margin:16px 0 6px;font-size:14px}
+.guide-body p,.guide-body li{max-width:68ch;margin:0 0 6px}
+.guide-body ul,.guide-body ol{padding-left:20px;margin:0}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">COT Pulse</div>
+    <div class="asof">Позиции на <span id="asof"></span> · цены <span id="px-age"></span></div>
+  </header>
+
+  <div class="picker" id="picker" role="group" aria-label="Актив"></div>
+
+  <section class="verdict" aria-live="polite">
+    <div class="v-top">
+      <div class="v-name" id="v-name"></div>
+      <div class="v-px" id="v-px"></div>
+    </div>
+    <div class="v-who" title="Некоммерческие участники в отчёте COT: хедж-фонды, CTA, управляющие активами">Крупные фонды сейчас</div>
+    <div class="v-side" id="v-side"></div>
+    <div class="v-line" id="v-line"></div>
+    <div class="split">
+      <div class="split-bar"><div class="l" id="sp-l"></div><div class="s" id="sp-s"></div></div>
+      <div class="split-lab"><span id="sp-ll"></span><span id="sp-sl"></span></div>
+    </div>
+
+    <div class="facts">
+      <div class="fact"><div class="k">За неделю</div><div class="v" id="f-week"></div><div class="d num" id="f-week-d"></div></div>
+      <div class="fact"><div class="k">Сила позиции vs 3 года</div><div class="meter"><i id="f-meter"></i></div><div class="d" id="f-strength"></div></div>
+      <div class="fact"><div class="k">Хеджеры (производители, банки)</div><div class="v" id="f-hedge"></div><div class="d" id="f-hedge-d"></div></div>
+    </div>
+
+    <div class="why">
+      <div class="why-h"><span class="why-t" id="why-t">Аргументы ИИ</span><span class="why-age" id="why-age"></span></div>
+      <div id="why-body"></div>
+    </div>
+
+    <div style="margin-top:16px"><span class="rel" id="rel" tabindex="0"></span></div>
+    <div class="rel-note" id="rel-note"></div>
+
+    <div class="spark">
+      <div class="spark-cap"><span>Нетто-позиция фондов, 12 месяцев</span><span id="sp-cap"></span></div>
+      <div id="spark"></div>
+    </div>
+  </section>
+
+  <div class="h2">Все рынки</div>
+  <div class="list" id="list"></div>
+
+  <details class="guide" id="guide">
+    <summary>Как пользоваться и насколько можно доверять</summary>
+    <div class="guide-body">
+      <h4>Откуда данные</h4>
+      <p>Это официальный отчёт Commitments of Traders американского регулятора CFTC. Крупные участники биржевых фьючерсов обязаны сообщать свои позиции, поэтому сами цифры точные: это не опрос и не оценка.</p>
+      <h4>Чего данные не показывают</h4>
+      <ul>
+        <li><b>Задержка.</b> Позиции фиксируются во вторник, публикуются в пятницу. К моменту, когда вы их видите, прошло 3 дня, а до следующего отчёта пройдёт ещё неделя.</li>
+        <li><b>Только биржевые фьючерсы США.</b> Внебиржевой валютный рынок, спот-крипта, ETF и опционы сюда не попадают. Чем меньше доля фьючерсов в рынке, тем менее показательна картина — это и есть оценка достоверности у каждого актива.</li>
+        <li><b>Не все позиции — ставки на направление.</b> Часть шортов фондов — это хедж или арбитраж (например, «купил ETF, продал фьючерс»). Особенно это заметно в Bitcoin, Ether и S&amp;P 500.</li>
+        <li><b>Это не точка входа.</b> Фонды могут держать лонг месяцами, пока цена падает. COT говорит о расстановке сил, а не о времени разворота.</li>
+      </ul>
+      <h4>Как использовать</h4>
+      <ol>
+        <li><b>Как фильтр направления.</b> Ищите сделки в сторону фондов, особенно если они наращивают позицию 2–4 недели подряд.</li>
+        <li><b>Как предупреждение на экстремумах.</b> Если «Сила позиции» у края шкалы, рынок перегружен в одну сторону: новым покупателям (или продавцам) взяться неоткуда, и даже плохая новость может вызвать резкий разворот.</li>
+        <li><b>Вместе с ценой.</b> Сильнейший сигнал — когда фонды меняют позицию, а цена подтверждает это движением. Если цена растёт, а фонды сокращают лонг, рост держится не на них.</li>
+        <li><b>Раз в неделю.</b> Обновляйте взгляд по пятницам после выхода отчёта, а точки входа и выхода ищите на графике.</li>
+      </ol>
+      <h4>Про аргументы ИИ</h4>
+      <p>Аргументы пишет Claude (Anthropic) автоматически после каждого нового отчёта. ИИ видит только цифры с этой страницы: позиции за 8 недель, изменения и цену. Он не читает новости и не знает, почему фонды заняли позицию, поэтому объясняет то, что показывают данные, а не реальные мотивы. Считайте его аргументы удобным пересказом цифр, а не прогнозом.</p>
+    </div>
+  </details>
+
+  <p class="note">«Фонды» — некоммерческие участники отчёта Commitments of Traders: хедж-фонды, CTA и другие крупные спекулянты. Отчёт фиксирует позиции на вторник и выходит в пятницу, поэтому это картина с задержкой в 3 дня, а не сигнал на вход. Не инвестиционная рекомендация.</p>
+</div>
+
+<script>
+(function(){
+const ASSETS=[
+ {c:'088691',n:'Золото',s:'GC',rel:3,rn:'COMEX — главная площадка для фьючерсов на золото, позиции фондов здесь хорошо отражают спекулятивный спрос. Не видны ETF и физический спрос центробанков.'},
+ {c:'084691',n:'Серебро',s:'SI',rel:3,rn:'COMEX — основной фьючерсный рынок серебра. Рынок узкий: небольшие сдвиги позиций сильно двигают цену.'},
+ {c:'085692',n:'Медь',s:'HG',rel:2,rn:'Показательно для американского рынка, но основная торговля медью идёт на LME (Лондон) и SHFE (Шанхай), которых здесь нет.'},
+ {c:'067651',n:'Нефть WTI',s:'CL',rel:2,rn:'Здесь один физический контракт NYMEX; часть спекулятивных позиций держится в смежных контрактах WTI и в Brent (ICE), которых здесь нет.'},
+ {c:'023651',n:'Газ',s:'NG',rel:2,rn:'Рынок, где доминируют производители и хеджеры; шорт фондов в газе — частое затяжное состояние, а цену сильно двигает погода.'},
+ {c:'098662',n:'Доллар (DXY)',s:'DX',rel:1,rn:'Фьючерс на индекс доллара маленький (OI ~50 тыс.). Настроение по доллару точнее видно по сумме позиций в евро, иене, фунте и других валютах.'},
+ {c:'099741',n:'Евро',s:'6E',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка, основная торговля идёт вне бирж. Но позиции фондов здесь — классический и широко отслеживаемый индикатор.'},
+ {c:'096742',n:'Фунт',s:'6B',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка, но позиции фондов здесь традиционно используются как индикатор настроения.'},
+ {c:'097741',n:'Иена',s:'6J',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка. Позиции по иене часто связаны с керри-трейдом и могут резко разворачиваться.'},
+ {c:'232741',n:'Австр. доллар',s:'6A',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка; используется как индикатор аппетита к риску.'},
+ {c:'090741',n:'Канад. доллар',s:'6C',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка; позиции часто следуют за нефтью.'},
+ {c:'13874A',n:'S&P 500',s:'ES',rel:1,rn:'Шорт фондов в S&P часто означает хедж портфеля акций или арбитраж, а не ставку на падение. Направление здесь читается плохо, важнее изменения и экстремумы.'},
+ {c:'209742',n:'Nasdaq 100',s:'NQ',rel:2,rn:'Как и в S&P 500, часть позиций — хеджи портфелей, но спекулятивная составляющая здесь выражена сильнее.'},
+ {c:'133741',n:'Bitcoin',s:'BTC',rel:1,rn:'CME — малая часть рынка биткоина (основная торговля на криптобиржах). Шорты фондов здесь часто — арбитраж «купил ETF, продал фьючерс», а не ставка на падение.'},
+ {c:'146021',n:'Ether',s:'ETH',rel:1,rn:'CME — малая часть рынка эфира; позиции фондов во многом арбитражные, к тому же открытый интерес небольшой.'}
+];
+
+const REL=['','Низкая','Средняя','Высокая'];
+const PRICE_POLL_MS=5*60*1000;
+const nf=new Intl.NumberFormat('ru-RU');
+const sgn=v=>(v>0?'+':v<0?'−':'')+nf.format(Math.abs(Math.round(v)));
+const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const MS=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const dLong=s=>{const [y,m,d]=s.split('-');return +d+' '+MON[+m-1]+' '+y};
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+function ago(iso){if(!iso)return'—';const m=Math.round((Date.now()-Date.parse(iso))/60000);
+  if(m<1)return'только что';if(m<60)return m+' мин назад';const h=Math.round(m/60);if(h<24)return h+' ч назад';
+  return new Date(iso).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
+const getJSON=p=>fetch(p+'?t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(p+' '+r.status);return r.json()});
+
+let COT,PX,AI,A={},cur='088691';
+try{const s=localStorage.getItem('cotpulse.min');if(s&&ASSETS.some(a=>a.c===s))cur=s}catch(e){}
+
+function analyze(c){
+  const d=COT.markets[c],t=d.nc.length-1,L=d.ls;
+  const net=d.nc[t],side=net>=0?'long':'short';
+  const pctLong=L.ncl/Math.max(1,L.ncl+L.ncs);
+  const w=d.nc.slice(-156),mn=Math.min(...w),mx=Math.max(...w);
+  const index=mx===mn?50:(net-mn)/(mx-mn)*100;
+  const strength=side==='long'?index:100-index;
+  const d1=net-d.nc[t-1],d4=net-d.nc[t-4],thr=d.oi[t]*0.005;
+  let move;
+  if(Math.abs(d1)<thr)move={txt:'Почти без изменений',arr:'→',cls:''};
+  else if(side==='long')move=d1>0?{txt:'Наращивают лонг',arr:'↑',cls:'up'}:{txt:'Сокращают лонг',arr:'↓',cls:'dn'};
+  else move=d1<0?{txt:'Наращивают шорт',arr:'↓',cls:'dn'}:{txt:'Сокращают шорт',arr:'↑',cls:'up'};
+  return {net,side,pctLong,index,strength,d1,d4,move,hedge:d.cm[t]>=0?'long':'short',L};
+}
+function priceInfo(c){
+  const p=PX&&PX.markets&&PX.markets[c];if(!p)return null;
+  const at=p.atReport&&p.atReport[p.atReport.length-1];
+  return {last:p.last,time:p.lastTime,since:at&&p.last?p.last/at-1:null};
+}
+function fmtPx(v){if(v==null)return'—';const a=Math.abs(v);
+  if(a>=1000)return v.toLocaleString('ru-RU',{maximumFractionDigits:a>=10000?0:1});
+  if(a>=10)return v.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(a>=0.1)return v.toLocaleString('ru-RU',{minimumFractionDigits:4,maximumFractionDigits:4});
+  return v.toLocaleString('ru-RU',{maximumSignificantDigits:4})}
+const pct=v=>(v>0?'+':v<0?'−':'')+Math.abs(v*100).toFixed(1).replace('.',',')+'%';
+function strengthWord(s){return s>=85?'Экстремальная':s>=65?'Выше обычного':s>=35?'Обычная':s>=15?'Ниже обычного':'Минимальная'}
+function strengthNote(r){const s=Math.round(r.strength);
+  if(r.side==='long')return r.index>=85?'Лонг около максимума за 3 года — рынок перегружен покупателями':`Лонг больше, чем в ${s}% диапазона 3 лет`;
+  return r.index<=15?'Шорт около максимума за 3 года — возможен откуп шортов':`Шорт сильнее, чем в ${s}% диапазона 3 лет`}
+
+function select(c){cur=c;try{localStorage.setItem('cotpulse.min',c)}catch(e){}render()}
+
+function renderPrice(){
+  const p=priceInfo(cur);
+  document.getElementById('v-px').innerHTML=!p?'':`<span class="num">${fmtPx(p.last)}</span>${p.since==null?'':` · <span class="num ${p.since>0?'up':p.since<0?'dn':''}">${pct(p.since)}</span> с даты отчёта`}`;
+  document.getElementById('px-age').textContent=PX?ago(PX.updatedAt):'—';
+}
+
+function render(){
+  document.getElementById('asof').textContent=dLong(COT.asOf);
+  document.getElementById('picker').innerHTML=ASSETS.map(a=>`<button type="button" class="chip" data-c="${a.c}" aria-pressed="${a.c===cur}"><i style="background:var(--${A[a.c].side})"></i>${a.n}</button>`).join('');
+  const a=ASSETS.find(x=>x.c===cur),r=A[cur];
+  document.getElementById('v-name').innerHTML=`${a.n}<span>${a.s}</span>`;
+  renderPrice();
+  const side=document.getElementById('v-side');side.textContent=r.side==='long'?'Лонг':'Шорт';side.className='v-side '+r.side;
+  const share=r.side==='long'?r.pctLong:1-r.pctLong;
+  document.getElementById('v-line').innerHTML=`<b>${Math.round(share*100)}%</b> позиций фондов — ставки ${r.side==='long'?'на рост':'на падение'}. ${r.move.txt==='Почти без изменений'?'За неделю позиция почти не изменилась.':r.move.txt+' за неделю.'}`;
+  const pl=Math.round(r.pctLong*100);
+  document.getElementById('sp-l').style.width=pl+'%';document.getElementById('sp-s').style.width=(100-pl)+'%';
+  document.getElementById('sp-ll').innerHTML=`Лонг <span class="num">${pl}%</span> · ${nf.format(r.L.ncl)}`;
+  document.getElementById('sp-sl').innerHTML=`${nf.format(r.L.ncs)} · <span class="num">${100-pl}%</span> Шорт`;
+  document.getElementById('f-week').innerHTML=`<span class="${r.move.cls}">${r.move.arr}</span> ${r.move.txt}`;
+  document.getElementById('f-week-d').textContent=`${sgn(r.d1)} контр. · 4 нед ${sgn(r.d4)}`;
+  document.getElementById('f-meter').style.left=r.index.toFixed(1)+'%';
+  document.getElementById('f-strength').innerHTML=`<b style="color:var(--ink);font-weight:600">${strengthWord(r.strength)}.</b> ${strengthNote(r)}`;
+  document.getElementById('f-hedge').innerHTML=`<span class="${r.hedge==='long'?'up':'dn'}">${r.hedge==='long'?'В лонге':'В шорте'}</span>`;
+  document.getElementById('f-hedge-d').textContent=r.hedge===r.side?'Заодно с фондами':'Против фондов — обычно страхуют свой товар';
+  document.getElementById('rel').innerHTML=`<i>${[1,2,3].map(k=>`<b class="${k<=a.rel?'on':''}"></b>`).join('')}</i> Показательность данных: ${REL[a.rel].toLowerCase()}`;
+  document.getElementById('rel-note').textContent=a.rn;
+  renderWhy(a,r);
+  drawSpark();
+  document.getElementById('list').innerHTML=ASSETS.map(x=>{const q=A[x.c];return `<button type="button" class="item" data-c="${x.c}" aria-current="${x.c===cur}">
+    <span class="nm">${x.n}</span><span class="tag ${q.side}">${q.side==='long'?'Лонг':'Шорт'}</span>
+    <span class="mini" title="Лонг ${Math.round(q.pctLong*100)}%"><i style="width:${(q.pctLong*100).toFixed(1)}%"></i></span>
+    <span class="arr ${q.move.cls}" title="${q.move.txt}">${q.move.arr}</span></button>`}).join('');
+}
+
+function renderWhy(a,r){
+  document.getElementById('why-t').textContent=`Почему ${r.side==='long'?'лонг':'шорт'} — аргументы ИИ`;
+  const box=document.getElementById('why-body'),age=document.getElementById('why-age');
+  const m=AI&&AI.markets&&AI.markets[a.c];
+  const fresh=m&&AI.cotAsOf===COT.asOf&&m.side===r.side&&!m.stale;
+  if(!m||!fresh){age.textContent='';
+    box.innerHTML=`<p class="muted">${AI&&AI.generatedAt?'Аргументы для нового отчёта готовятся и появятся в течение часа.':'Аргументы появятся после первого автоматического обновления.'}</p>`;return}
+  age.textContent='обновлено '+ago(AI.generatedAt);
+  box.innerHTML=`<ul>${m.args.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${m.use?`<div class="use"><b>Как учитывать:</b> ${esc(m.use)}</div>`:''}${m.caveat?`<div class="cav">Ограничение: ${esc(m.caveat)}</div>`:''}`;
+}
+
+function drawSpark(){
+  const box=document.getElementById('spark'),d=COT.markets[cur].nc.slice(-52),dates=COT.dates.slice(-52);
+  const W=Math.max(280,box.clientWidth||640),H=70,P=3;
+  const hi=Math.max(0,...d),lo=Math.min(0,...d),rg=(hi-lo)||1;
+  const x=i=>P+i/(d.length-1)*(W-2*P),y=v=>P+(hi-v)/rg*(H-2*P);
+  const bw=(W-2*P)/d.length*0.7;
+  let s=`<svg viewBox="0 0 ${W} ${H+16}" role="img" aria-label="Нетто-позиция фондов за 12 месяцев">`;
+  s+=`<line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line)"/>`;
+  d.forEach((v,i)=>{const top=Math.min(y(v),y(0)),h=Math.max(Math.abs(y(v)-y(0)),0.6);
+    s+=`<rect x="${x(i)-bw/2}" y="${top}" width="${bw}" height="${h}" rx="1" fill="var(--${v>=0?'long':'short'})" opacity="${i===d.length-1?1:.5}"/>`});
+  let lm=-1;dates.forEach((ds,i)=>{const m=+ds.slice(5,7);if(m!==lm&&i>0&&(m-1)%3===0)s+=`<text x="${x(i)}" y="${H+13}" font-size="11" fill="var(--faint)" text-anchor="middle">${MS[m-1]}</text>`;lm=m});
+  box.innerHTML=s+'</svg>';
+  document.getElementById('sp-cap').textContent=sgn(d[d.length-1])+' контр.';
+}
+
+async function load(){
+  try{
+    [COT,PX,AI]=await Promise.all([getJSON('data/cot.json'),getJSON('data/prices.json').catch(()=>null),getJSON('data/ai.json').catch(()=>null)]);
+    for(const a of ASSETS)A[a.c]=analyze(a.c);
+    render();
+  }catch(e){document.querySelector('.verdict').innerHTML='<p class="muted">Не удалось загрузить данные. Обновите страницу через минуту.</p>'}
+}
+async function refresh(){
+  try{
+    const [cot,px,ai]=await Promise.all([getJSON('data/cot.json'),getJSON('data/prices.json'),getJSON('data/ai.json').catch(()=>AI)]);
+    const newReport=cot.asOf!==COT.asOf;COT=cot;PX=px;AI=ai;
+    if(newReport){for(const a of ASSETS)A[a.c]=analyze(a.c);render()}else{renderPrice();renderWhy(ASSETS.find(x=>x.c===cur),A[cur])}
+  }catch(e){}
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(b&&COT)select(b.dataset.c)});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>COT&&drawSpark(),120)});
+setInterval(()=>{if(!document.hidden)refresh()},PRICE_POLL_MS);
+setInterval(()=>{if(PX)document.getElementById('px-age').textContent=ago(PX.updatedAt)},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&COT)refresh()});
+load();
+})();
+</script>
+</body>
+</html>
