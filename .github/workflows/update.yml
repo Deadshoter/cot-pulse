@@ -1,0 +1,83 @@
+name: Update data and deploy
+
+on:
+  schedule:
+    # Every 30 minutes, Sunday 21:00 UTC through Friday night (futures trading week).
+    # Each run also checks CFTC for a new COT report (normally Friday 19:30–20:30 UTC).
+    - cron: "*/30 * * * 0-5"
+    # Saturday catch-up run for delayed reports.
+    - cron: "0 9 * * 6"
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Rebuild COT data and AI arguments even if the report is unchanged"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: COT report (CFTC)
+        id: cot
+        if: github.event_name != 'push'
+        working-directory: scripts
+        env:
+          CFTC_APP_TOKEN: ${{ secrets.CFTC_APP_TOKEN }}
+        run: python update_cot.py ${{ inputs.force && '--force' || '' }}
+
+      - name: Prices (Yahoo Finance)
+        if: github.event_name != 'push'
+        working-directory: scripts
+        continue-on-error: true
+        run: python update_prices.py
+
+      - name: AI arguments (Anthropic)
+        if: github.event_name != 'push'
+        working-directory: scripts
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_MODEL: ${{ vars.AI_MODEL }}
+        run: python update_ai.py ${{ inputs.force && '--force' || '' }}
+
+      - name: Commit data
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "cot-pulse-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "No data changes"
+          else
+            git commit -m "data: update $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deploy
+        uses: actions/deploy-pages@v4
