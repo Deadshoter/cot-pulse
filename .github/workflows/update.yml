@@ -45,13 +45,15 @@ jobs:
         working-directory: scripts
         env:
           CFTC_APP_TOKEN: ${{ secrets.CFTC_APP_TOKEN }}
-        run: python update_cot.py ${{ inputs.force && '--force' || '' }}
+        run: python -u update_cot.py ${{ inputs.force && '--force' || '' }}
 
-      - name: Prices (Yahoo Finance)
+      - name: Prices (Yahoo Finance via yfinance)
         if: github.event_name != 'push'
         working-directory: scripts
         continue-on-error: true
-        run: python update_prices.py
+        run: |
+          pip install --quiet --disable-pip-version-check yfinance
+          python -u update_prices.py
 
       - name: AI arguments (Anthropic)
         if: github.event_name != 'push'
@@ -60,7 +62,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AI_MODEL: ${{ vars.AI_MODEL }}
-        run: python update_ai.py ${{ inputs.force && '--force' || '' }}
+        run: python -u update_ai.py ${{ inputs.force && '--force' || '' }}
 
       - name: Commit data
         if: github.event_name != 'push'
