@@ -26,7 +26,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
-.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:28px 56px;display:flex;flex-direction:column;gap:20px}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:28px 56px;display:flex;flex-direction:column;gap:20px}
 .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
@@ -148,6 +148,20 @@ details.guide[open] summary{border-bottom:1px solid var(--line)}
 @media (max-width:520px){.ev{grid-template-columns:auto 10px minmax(0,1fr)}.ev-c,.ev-u{display:none}}
 .brand small{display:block;font-family:var(--f-body);font-weight:400;font-size:12px;letter-spacing:.04em;color:var(--muted);margin-top:1px}
 header{align-items:center}
+
+/* Layout: two-column board — positioning on the left, events on the right; panels stack inside each column */
+header{padding-bottom:16px;border-bottom:1px solid var(--line)}
+.board{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:24px;align-items:start}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.panel-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:12px}
+.panel-h h2{font-family:var(--f-display);font-size:19px;font-weight:700;margin:0;letter-spacing:.01em}
+.panel-h .src{font-size:12px;color:var(--faint)}
+.col-h{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 -8px}
+@media (min-width:981px){.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}.side #cal{max-height:min(58vh,620px);overflow:auto;padding-right:6px;margin-right:-6px}}
+@media (max-width:980px){.board{grid-template-columns:minmax(0,1fr)}}
+.foot{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:980px){.foot{grid-template-columns:minmax(0,1fr)}}
+.foot .note{margin:0}
 </style>
 
 </head>
@@ -158,6 +172,9 @@ header{align-items:center}
     <div class="asof">Позиции на <span id="asof"></span> · цены <span id="px-age"></span></div>
   </header>
 
+  <div class="board">
+  <div class="col">
+  <div class="col-h">Позиции крупных фондов · COT</div>
   <div class="picker" id="picker" role="group" aria-label="Актив"></div>
 
   <section class="verdict" aria-live="polite">
@@ -179,8 +196,6 @@ header{align-items:center}
       <div class="fact"><div class="k">Хеджеры (производители, банки)</div><div class="v" id="f-hedge"></div><div class="d" id="f-hedge-d"></div></div>
     </div>
 
-    <div class="next-ev" id="next-ev"></div>
-
     <div class="why">
       <div class="why-h"><span class="why-t" id="why-t">Почему — разбор по цифрам</span><span class="why-age" id="why-age"></span></div>
       <div id="why-body"></div>
@@ -195,11 +210,16 @@ header{align-items:center}
     </div>
   </section>
 
-  <div class="h2">Все рынки</div>
+  <div class="col-h">Все рынки</div>
   <div class="list" id="list"></div>
 
-  <div class="h2">Экономический календарь</div>
+  </div>
+
+  <aside class="col side">
+  <div class="col-h">Новости и события</div>
+  <section class="cal"><div id="next-ev"></div></section>
   <section class="cal" aria-live="polite">
+    <div class="panel-h"><h2>Экономический календарь</h2><span class="src">Forex Factory</span></div>
     <div class="cal-ctl">
       <div class="seg" role="group" aria-label="Важность">
         <button type="button" data-lvl="High">Важные</button><button type="button" data-lvl="Medium">+ средние</button><button type="button" data-lvl="Low">Все</button>
@@ -210,6 +230,10 @@ header{align-items:center}
     <div class="cal-meta" id="cal-meta"></div>
   </section>
 
+  </aside>
+  </div>
+
+  <div class="foot">
   <details class="guide" id="guide">
     <summary>Как пользоваться и насколько можно доверять</summary>
     <div class="guide-body">
@@ -235,6 +259,7 @@ header{align-items:center}
   </details>
 
   <p class="note">«Фонды» — некоммерческие участники отчёта Commitments of Traders: хедж-фонды, CTA и другие крупные спекулянты. Отчёт фиксирует позиции на вторник и выходит в пятницу, поэтому это картина с задержкой в 3 дня, а не сигнал на вход. Не инвестиционная рекомендация.</p>
+  </div>
 </div>
 
 <script>
