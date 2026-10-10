@@ -53,6 +53,19 @@ header{display:flex;justify-content:space-between;align-items:baseline;gap:8px 1
 .v-line{font-size:18px;max-width:46ch}
 .v-line b{font-weight:600}
 
+/* crowd sentiment gauge */
+.v-main{display:flex;gap:20px;align-items:flex-start;justify-content:space-between}
+.v-main>.v-left{flex:1;min-width:0}
+.crowd{flex:0 0 168px;margin-top:18px;padding:10px 10px 9px;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.22);text-align:center}
+.crowd-h{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.crowd svg{display:block;width:100%;max-width:170px;height:auto;margin:4px auto 0}
+.crowd .ndl{transition:transform .9s cubic-bezier(.3,1.4,.5,1);transform-origin:70px 70px}
+.crowd-v{display:flex;justify-content:space-between;font-size:12.5px;margin-top:2px}
+.crowd-v .s{color:var(--short)} .crowd-v .l{color:var(--long)}
+.crowd-n{font-size:11px;color:var(--faint);margin-top:4px;line-height:1.35}
+.crowd-hint{font-size:11.5px;color:var(--ink);margin-top:5px;line-height:1.35}
+.crowd.off svg{opacity:.35}
+@media (max-width:640px){.v-main{flex-direction:column;gap:0}.crowd{flex:none;width:100%;max-width:240px;margin:16px 0 0}}
 .split{margin-top:22px}
 .split-bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--sunk)}
 .split-bar .l{background:var(--long)} .split-bar .s{background:var(--short)}
@@ -332,9 +345,24 @@ header{align-items:center;padding-bottom:18px}
       <div class="v-name" id="v-name"></div>
       <div class="v-px" id="v-px"></div>
     </div>
-    <div class="v-who" title="Некоммерческие участники в отчёте COT: хедж-фонды, CTA, управляющие активами">Крупные фонды сейчас</div>
-    <div class="v-side" id="v-side"></div>
-    <div class="v-line" id="v-line"></div>
+    <div class="v-main"><div class="v-left">
+      <div class="v-who" title="Некоммерческие участники в отчёте COT: хедж-фонды, CTA, управляющие активами">Крупные фонды сейчас</div>
+      <div class="v-side" id="v-side"></div>
+      <div class="v-line" id="v-line"></div>
+    </div>
+    <div class="crowd" id="crowd" title="Доля объёма позиций розничных трейдеров в шорте и лонге (Myfxbook Community Outlook). Обновляется каждые 5 минут.">
+      <div class="crowd-h">Настроение толпы</div>
+      <svg viewBox="0 0 140 78" aria-hidden="true">
+        <defs><linearGradient id="cg" x1="0" x2="1"><stop offset="0" stop-color="var(--short)"/><stop offset=".5" stop-color="#8a8f96"/><stop offset="1" stop-color="var(--long)"/></linearGradient></defs>
+        <path d="M12 70 A58 58 0 0 1 128 70" fill="none" stroke="url(#cg)" stroke-width="9" stroke-linecap="round"/>
+        <path d="M70 18 L70 24" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+        <g class="ndl" id="crowd-ndl"><path d="M70 70 L67.2 70 L70 20 L72.8 70 Z" fill="var(--ink)"/></g>
+        <circle cx="70" cy="70" r="5.5" fill="var(--ink)"/>
+      </svg>
+      <div class="crowd-v num"><span class="s" id="crowd-s">—</span><span class="l" id="crowd-l">—</span></div>
+      <div class="crowd-hint" id="crowd-hint"></div>
+      <div class="crowd-n" id="crowd-n"></div>
+    </div></div>
     <div class="split">
       <div class="split-bar"><div class="l" id="sp-l"></div><div class="s" id="sp-s"></div></div>
       <div class="split-lab"><span id="sp-ll"></span><span id="sp-sl"></span></div>
@@ -554,6 +582,7 @@ function render(){
   document.getElementById('rel-note').textContent=a.rn;
   renderWhy(a,r);
   renderNextEv();
+  if(typeof renderCrowd==='function')renderCrowd();
   if(CAL)renderCal();
   drawSpark();
   document.getElementById('list').innerHTML=ASSETS.map(x=>{const q=A[x.c];return `<button type="button" class="item" data-c="${x.c}" aria-current="${x.c===cur}">
@@ -714,6 +743,30 @@ function calcRun(){
    rrRows+'</dl>'+warn;
 }
 
+// ---------- crowd sentiment (retail, Myfxbook via robot) ----------
+// [symbol, invert]: yen and CAD futures are quoted against USD pairs, so USDJPY long = short yen.
+const CROWD={'088691':['XAUUSD',0],'084691':['XAGUSD',0],'099741':['EURUSD',0],'096742':['GBPUSD',0],'097741':['USDJPY',1],'232741':['AUDUSD',0],'090741':['USDCAD',1],'133741':['BTCUSD',0],'146021':['ETHUSD',0]};
+let SENT=null;
+function renderCrowd(){
+  const box=document.getElementById('crowd');if(!box)return;
+  const m=CROWD[cur],d=SENT&&m&&SENT.symbols?SENT.symbols[m[0]]:null;
+  const ndl=document.getElementById('crowd-ndl');
+  if(!d){box.classList.add('off');ndl.style.transform='rotate(0deg)';
+    document.getElementById('crowd-s').textContent='—';document.getElementById('crowd-l').textContent='—';
+    document.getElementById('crowd-hint').textContent=m?'Данные загружаются…':'Для этого актива нет данных по рознице';
+    document.getElementById('crowd-n').textContent=m?'':'Есть по золоту, серебру, валютам и крипте';return}
+  box.classList.remove('off');
+  let L=d.l,S=d.s;if(m[1]){L=d.s;S=d.l}
+  ndl.style.transform='rotate('+((L-50)*1.8).toFixed(1)+'deg)';
+  document.getElementById('crowd-s').textContent='Шорт '+S+'%';
+  document.getElementById('crowd-l').textContent='Лонг '+L+'%';
+  const big=Math.max(L,S);
+  document.getElementById('crowd-hint').innerHTML=big>=70?'Толпа сильно в '+(L>S?'<b class="up">лонге</b>':'<b class="dn">шорте</b>')+' — часто сигнал против толпы':big>=60?'Перевес в '+(L>S?'лонг':'шорт'):'Толпа без явного перевеса';
+  const n=(d.sn||0)+(d.ln||0);
+  document.getElementById('crowd-n').textContent=(m[1]?m[0]+' (инверсия) · ':m[0]+' · ')+n.toLocaleString('ru-RU')+' позиций · '+ago(SENT.updatedAt);
+}
+function loadSent(){return getJSON('data/sentiment.json').then(j=>{if(j&&j.symbols){SENT=j;renderCrowd()}}).catch(()=>{if(!SENT)renderCrowd()})}
+setInterval(()=>{if(!document.hidden)loadSent()},60000);
 // ---------- economic calendar (own table, data: TradingView via robot) ----------
 const ECCY={'088691':['USD'],'084691':['USD'],'085692':['USD','CNY'],'067651':['USD'],'023651':['USD'],'098662':['USD'],'099741':['EUR','USD'],'096742':['GBP','USD'],'097741':['JPY','USD'],'232741':['AUD','CNY','USD'],'090741':['CAD','USD'],'13874A':['USD'],'209742':['USD'],'133741':['USD'],'146021':['USD']};
 const IMPN={high:3,med:2,low:1,hol:0};
@@ -798,7 +851,7 @@ let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>COT&&dr
 setInterval(()=>{if(!document.hidden)refresh()},PRICE_POLL_MS);
 setInterval(()=>{if(PX)document.getElementById('px-age').textContent=ago(PX.updatedAt)},60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&COT)refresh()});
-load().then(loadCal);
+load().then(loadCal).then(loadSent);
 })();
 </script>
 </body>

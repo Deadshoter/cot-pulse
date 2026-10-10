@@ -1,10 +1,10 @@
-name: Economic calendar (fast)
+name: Calendar and crowd sentiment (fast)
 
 on:
   schedule:
-    # Every 5 minutes on weekdays: picks up actual values soon after a release.
+    # Every 5 minutes on weekdays: actual values and crowd sentiment.
     - cron: "*/5 * * * 1-5"
-    # Every 30 minutes on weekends (next week's schedule appears).
+    # Every 30 minutes on weekends (next week's schedule appears, crypto keeps trading).
     - cron: "15,45 * * * 0,6"
   workflow_dispatch:
 
@@ -18,34 +18,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  calendar:
+  fast:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    environment:
+      name: github-pages
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Fetch calendar
-        id: cal
+      - name: Economic calendar (TradingView)
         working-directory: scripts
+        continue-on-error: true
         run: python -u update_tvcal.py
+      - name: Crowd sentiment (Myfxbook)
+        working-directory: scripts
+        continue-on-error: true
+        run: python -u update_sentiment.py
       - name: Commit
-        if: steps.cal.outputs.changed == 'true'
+        id: commit
         run: |
           git config user.name "cot-pulse-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/calendar.json
-          git commit -m "calendar: update $(date -u +%Y-%m-%dT%H:%MZ)"
-          git pull --rebase --quiet
-          git push
-      - if: steps.cal.outputs.changed == 'true'
+          git add data/calendar.json data/sentiment.json 2>/dev/null || git add data
+          if git diff --cached --quiet; then
+            echo "No changes"
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "fast data: $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull --rebase --quiet
+            git push
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.commit.outputs.deploy == 'true'
         uses: actions/configure-pages@v5
-      - if: steps.cal.outputs.changed == 'true'
+      - if: steps.commit.outputs.deploy == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
-      - if: steps.cal.outputs.changed == 'true'
+      - if: steps.commit.outputs.deploy == 'true'
         uses: actions/deploy-pages@v4
-    environment:
-      name: github-pages
