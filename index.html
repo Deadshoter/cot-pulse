@@ -341,9 +341,10 @@ header{align-items:center;padding-bottom:18px}
 <div class="wrap">
   <header>
     <div class="hdr-l">
-      <a class="logo-m" href="./" aria-label="The Mental Analytics — на главную"><img src="assets/m.webp" alt="" width="58" height="47"></a>
+      <a class="logo-m" href="./" aria-label="The Mental Analytics — на главную"><img src="assets/m-logo.webp" alt="" width="60" height="48"></a>
       <div class="brand">The Mental Analytics<small>by KerikFX</small></div>
           </div>
+    <p class="motto" id="motto" aria-live="polite"></p>
     <div class="hdr-r">
       <div class="asof">Позиции на <span id="asof"></span> · цены <span id="px-age"></span></div>
       <a class="jrnl" href="https://www.notion.so/3f52f02e5d61812eb085c72f90ac82a8" target="_blank" rel="noopener" title="Трейдинг-журнал Mental в Notion — открыть или скопировать себе">
@@ -408,6 +409,12 @@ header{align-items:center;padding-bottom:18px}
       <div class="spark-cap"><span>Нетто-позиция фондов, 12 месяцев</span><span id="sp-cap"></span></div>
       <div id="spark"></div>
     </div>
+  </section>
+
+  <section class="cal tvc" id="tvc" aria-label="График TradingView">
+    <div class="panel-h"><h2>График</h2><a class="tvc-open" id="tvc-open" href="https://www.tradingview.com/chart/" target="_blank" rel="noopener" title="Открыть этот инструмент на TradingView под своим аккаунтом">Открыть в TradingView<span aria-hidden="true"> ↗</span></a></div>
+    <div class="tvc-box" id="tvc-box"><div class="tvc-ph">График загружается…</div></div>
+    <p class="tv-note">Полноценный график: любой тикер, таймфреймы, индикаторы и рисование. Переключается вместе с выбранным активом. Чтобы работать со своими сохранёнными шаблонами и индикаторами, нажмите «Открыть в TradingView» — там вы будете в своём аккаунте.</p>
   </section>
 
 
@@ -878,10 +885,26 @@ load().then(loadCal).then(loadSent);
 <style>
 /* header logo */
 .hdr-l{display:flex;align-items:center;gap:12px}
-.logo-m{flex:none;display:block;width:58px;height:47px;position:relative;filter:drop-shadow(0 0 14px rgba(255,255,255,.22)) drop-shadow(0 6px 18px rgba(0,0,0,.6));transition:transform .2s}
-.logo-m img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;display:block}
-.logo-m:hover{transform:translateY(-1px) scale(1.04)}
+.logo-m{flex:none;display:block;width:60px;height:48px;position:relative;filter:drop-shadow(0 0 8px rgba(255,255,255,.28)) drop-shadow(0 0 22px rgba(160,200,255,.18)) drop-shadow(0 5px 10px rgba(0,0,0,.55));transition:transform .25s,filter .25s}
+.logo-m img{width:100%;height:100%;object-fit:contain;display:block}
+.logo-m:hover{transform:translateY(-2px) scale(1.06);filter:drop-shadow(0 0 10px rgba(255,255,255,.42)) drop-shadow(0 0 26px rgba(160,200,255,.26)) drop-shadow(0 6px 12px rgba(0,0,0,.55))}
 @media (max-width:520px){.logo-m{width:48px;height:39px}}
+.tvc{margin-top:0}
+.tvc .panel-h h2{font-size:17px;margin:0}
+.tvc-open{font-size:13px;font-weight:600;color:var(--long);text-decoration:none;white-space:nowrap}
+.tvc-open:hover{text-decoration:underline}
+.tvc-box{position:relative;height:var(--tvh,520px);border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#0a0c0f}
+.tvc-box iframe{display:block}
+.tvc-box .tradingview-widget-container,.tvc-box .tradingview-widget-container__widget{height:100%!important;width:100%!important}
+.tvc-box .tradingview-widget-copyright{display:none}
+.tvc-ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px}
+.tvc .tv-note{margin:10px 0 0}
+@media (max-width:980px){.tvc-box{height:440px!important}}
+@media (max-width:520px){.tvc-box{height:380px!important}}
+.motto{flex:1 1 220px;min-width:0;align-self:center;text-align:center;margin:0 8px;font-family:var(--f-body);font-size:13.5px;line-height:1.35;font-style:italic;color:var(--muted);opacity:0;transition:opacity .6s}
+.motto.on{opacity:1}
+.motto b{font-style:normal;font-weight:600;color:var(--long);margin-right:6px}
+@media (max-width:1240px){.motto{order:3;flex-basis:100%;margin:2px 0 0;text-align:left}}
 /* floating focus music */
 .fm-btn{position:fixed;left:16px;top:50%;transform:translateY(-50%);z-index:90;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;cursor:pointer;color:var(--long);
   background:linear-gradient(180deg,rgba(75,214,157,.24),rgba(75,214,157,.08));border:1px solid rgba(75,214,157,.6);
@@ -986,5 +1009,28 @@ document.addEventListener('click',e=>{if(panel.classList.contains('open')&&!pane
 ui();
 })();
 </script>
+<script>(function(){
+var MAP={'088691':'OANDA:XAUUSD','084691':'OANDA:XAGUSD','085692':'CAPITALCOM:COPPER','067651':'TVC:USOIL','023651':'CAPITALCOM:NATURALGAS','098662':'TVC:DXY','099741':'FX:EURUSD','096742':'FX:GBPUSD','097741':'FX:USDJPY','232741':'FX:AUDUSD','090741':'FX:USDCAD','13874A':'FOREXCOM:SPXUSD','209742':'FOREXCOM:NSXUSD','133741':'BITSTAMP:BTCUSD','146021':'BITSTAMP:ETHUSD'};
+var box=document.getElementById('tvc-box'),sec=document.getElementById('tvc'),open=document.getElementById('tvc-open');if(!box)return;
+var shown=null,started=false;
+function sym(){var b=document.querySelector('#picker .chip[aria-pressed="true"]');return (b&&MAP[b.dataset.c])||'OANDA:XAUUSD'}
+function fit(){if(innerWidth<=980){box.style.removeProperty('--tvh');return}
+  var side=document.querySelector('.side'),col=sec.parentElement;if(!side||!col)return;
+  box.style.setProperty('--tvh','520px');
+  var gap=side.offsetHeight-col.offsetHeight;
+  var h=Math.round(Math.max(480,Math.min(760,520+gap)));box.style.setProperty('--tvh',h+'px')}
+function build(){var s=sym();if(s===shown)return;shown=s;
+  open.href='https://www.tradingview.com/chart/?symbol='+encodeURIComponent(s);
+  box.innerHTML='<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div></div>';
+  var sc=document.createElement('script');sc.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';sc.async=true;
+  sc.text=JSON.stringify({autosize:true,symbol:s,interval:'240',timezone:'Etc/UTC',theme:'dark',style:'1',locale:'ru',backgroundColor:'#0a0c0f',gridColor:'rgba(255,255,255,0.05)',allow_symbol_change:true,withdateranges:true,hide_side_toolbar:false,details:false,calendar:false,save_image:true,support_host:'https://www.tradingview.com'});
+  box.firstChild.appendChild(sc)}
+function start(){if(started)return;started=true;fit();build()}
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(e){if(e.some(function(x){return x.isIntersecting})){io.disconnect();start()}},{rootMargin:'400px'});io.observe(sec)}else start();
+var pk=document.getElementById('picker');if(pk&&window.MutationObserver)new MutationObserver(function(){if(started){fit();build()}}).observe(pk,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-pressed']});
+var rt;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(fit,200)});
+setTimeout(function(){if(started)fit()},2500);
+})();</script>
+<script>(function(){var Q=["Трейдинг — это сложно, но ты не проиграл, пока не сдался.", "Один убыток — это сделка, а не приговор.", "Дисциплина сегодня — свобода завтра.", "Рынок будет и завтра. Береги депозит и голову.", "Лучшая сделка иногда — та, которую ты не открыл.", "Ты торгуешь не рынок, а свои решения.", "Маленький стоп — большая жизнь на рынке.", "Терпение тоже позиция. Жди свой сетап.", "Каждая ошибка в журнале — шаг к профиту.", "Профи не угадывают, они управляют риском.", "Спокойная голова видит больше, чем быстрые руки.", "Не отыгрывайся. Следующая сделка — новая история.", "Прогресс не всегда виден на графике, но он есть.", "Следуй плану, даже когда эмоции против.", "Сильные трейдеры тоже теряют — просто меньше.", "Ты ближе к цели, чем был вчера.", "Рынок награждает тех, кто умеет ждать.", "Слив — это урок. Вывод из него — твоё преимущество.", "Меньше сделок, больше качества.", "Твой главный актив — не депозит, а дисциплина.", "Плохой день не делает тебя плохим трейдером.", "Сегодня просто сделай всё по правилам.", "Риск под контролем — значит, и ты в игре.", "Каждый мастер когда-то был новичком со сливом.", "Стабильность важнее одного большого тейка.", "Выдохни. Ни одна сделка не стоит твоего спокойствия.", "Ты строишь навык, а не ловишь удачу.", "Не спеши: хороший вход всегда даёт время подумать.", "Сомневаешься — значит, не входи.", "Сложный путь ведёт к сильному результату.", "Записывай, анализируй, повторяй. Так растут трейдеры.", "Рынок не против тебя. Он просто не знает о тебе.", "Держись плана — он умнее твоих эмоций.", "Успех в трейдинге — это сотни скучных правильных решений.", "Не сравнивай свой путь с чужими скриншотами.", "Сохрани капитал — и шанс обязательно придёт.", "Сегодняшний стоп — плата за завтрашний опыт.", "Веришь в систему — дай ей время сработать.", "Ты не обязан торговать каждый день. Ты обязан быть готов.", "Шаг за шагом. Сделка за сделкой. Ты справишься."];var el=document.getElementById('motto');if(!el)return;var last=-1;try{last=+localStorage.getItem('mental.motto')}catch(e){}var i=Math.floor(Math.random()*Q.length);if(i===last)i=(i+1+Math.floor(Math.random()*(Q.length-1)))%Q.length;try{localStorage.setItem('mental.motto',i)}catch(e){}el.innerHTML='<b>●</b>';el.appendChild(document.createTextNode(Q[i]));requestAnimationFrame(function(){el.classList.add('on')})})();</script>
 </body>
 </html>
