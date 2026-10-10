@@ -872,5 +872,144 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&COT)refre
 load().then(loadCal).then(loadSent);
 })();
 </script>
+<style>
+/* focus music player */
+.fm-btn{position:fixed;left:16px;bottom:16px;z-index:60;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--ink);
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 10px 30px rgba(0,0,0,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:transform .15s,border-color .15s}
+.fm-btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.4)}
+.fm-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.fm-eq{display:none;gap:2px;align-items:flex-end;height:16px}
+.fm-eq i{width:3px;background:var(--long);border-radius:2px;animation:fmEq 1s ease-in-out infinite}
+.fm-eq i:nth-child(2){animation-delay:-.4s}.fm-eq i:nth-child(3){animation-delay:-.7s}.fm-eq i:nth-child(4){animation-delay:-.2s}
+@keyframes fmEq{0%,100%{height:4px}50%{height:16px}}
+.fm-btn.on .fm-eq{display:flex}.fm-btn.on .fm-ic{display:none}
+.fm-panel{position:fixed;left:16px;bottom:72px;z-index:60;width:272px;padding:14px;border-radius:18px;color:var(--ink);
+  background:linear-gradient(180deg,rgba(28,31,35,.92),rgba(12,14,16,.94));border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 24px 60px rgba(0,0,0,.6);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  opacity:0;transform:translateY(8px) scale(.98);pointer-events:none;transition:opacity .18s,transform .18s}
+.fm-panel.open{opacity:1;transform:none;pointer-events:auto}
+.fm-h{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+.fm-x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:2px 4px}
+.fm-tabs{display:flex;gap:6px;margin-bottom:10px}
+.fm-tabs button{flex:1;padding:7px 8px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);font:inherit;font-size:13px;cursor:pointer}
+.fm-tabs button[aria-pressed="true"]{background:var(--ink);color:#0b0d0f;border-color:var(--ink);font-weight:600}
+.fm-vid{width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000;margin-bottom:10px}
+.fm-vid iframe{width:100%;height:100%;border:0;display:block}
+.fm-amb{height:72px;border-radius:10px;margin-bottom:10px;position:relative;overflow:hidden;background:radial-gradient(120% 140% at 30% 20%,rgba(79,201,143,.18),transparent 60%),radial-gradient(120% 140% at 80% 90%,rgba(120,140,255,.16),transparent 60%),#0a0c0e}
+.fm-amb span{position:absolute;inset:auto 10px 8px 10px;font-size:12px;color:var(--muted)}
+.fm-amb i{position:absolute;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.07);filter:blur(10px);animation:fmFloat 9s ease-in-out infinite}
+.fm-amb i:nth-child(2){left:55%;top:10%;animation-delay:-3s;width:80px;height:80px}
+@keyframes fmFloat{0%,100%{transform:translate(10px,0)}50%{transform:translate(60px,10px)}}
+.fm-ctl{display:flex;align-items:center;gap:10px}
+.fm-play{width:38px;height:38px;border-radius:50%;border:0;background:var(--ink);color:#0b0d0f;cursor:pointer;display:grid;place-items:center;flex:none}
+.fm-vol{flex:1;accent-color:var(--long)}
+.fm-note{font-size:11px;color:var(--faint);margin-top:8px;line-height:1.4}
+.fm-note a{color:var(--muted)}
+@media (max-width:520px){.fm-btn{left:12px;bottom:12px}.fm-panel{left:12px;bottom:66px;width:calc(100vw - 24px);max-width:300px}}
+</style>
+<button type="button" class="fm-btn" id="fm-btn" aria-label="Музыка для фокуса" title="Музыка для фокуса" aria-expanded="false" aria-controls="fm-panel">
+  <svg class="fm-ic" viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+  <span class="fm-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+</button>
+<div class="fm-panel" id="fm-panel" role="dialog" aria-label="Музыка для фокуса">
+  <div class="fm-h"><span>Музыка для фокуса</span><button type="button" class="fm-x" id="fm-x" aria-label="Свернуть">×</button></div>
+  <div class="fm-tabs" role="group" aria-label="Режим"><button type="button" data-fm="lofi">Lo-fi</button><button type="button" data-fm="ambient">Ambient</button></div>
+  <div class="fm-vid" id="fm-vid" hidden></div>
+  <div class="fm-amb" id="fm-amb" hidden><i></i><i></i><span>Медитативный эмбиент · генерируется заново, не повторяется</span></div>
+  <div class="fm-ctl">
+    <button type="button" class="fm-play" id="fm-play" aria-label="Играть"><svg id="fm-pi" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 5v14l12-7z" fill="currentColor"/></svg></button>
+    <input class="fm-vol" id="fm-vol" type="range" min="0" max="100" value="45" aria-label="Громкость">
+  </div>
+  <div class="fm-note" id="fm-note"></div>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const btn=$('fm-btn'),panel=$('fm-panel'),play=$('fm-play'),vol=$('fm-vol'),vidBox=$('fm-vid'),amb=$('fm-amb'),note=$('fm-note'),pi=$('fm-pi');
+const ICON_PLAY='<path d="M7 5v14l12-7z" fill="currentColor"/>',ICON_PAUSE='<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/>';
+let mode='lofi',playing=false;
+try{const s=JSON.parse(localStorage.getItem('mental.focus')||'{}');if(s.m)mode=s.m;if(s.v!=null)vol.value=s.v}catch(e){}
+function save(){try{localStorage.setItem('mental.focus',JSON.stringify({m:mode,v:+vol.value}))}catch(e){}}
+function ui(){
+  document.querySelectorAll('[data-fm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fm===mode));
+  vidBox.hidden=mode!=='lofi';amb.hidden=mode!=='ambient';
+  note.innerHTML=mode==='lofi'?'Прямой эфир <a href="https://www.youtube.com/@LofiGirl" target="_blank" rel="noopener">Lofi Girl</a> на YouTube: музыка идёт без остановки.':'Мягкие аккорды и колокольчики собираются случайно прямо в браузере, тональность меняется каждые пару минут.';
+  btn.classList.toggle('on',playing);play.setAttribute('aria-label',playing?'Пауза':'Играть');pi.innerHTML=playing?ICON_PAUSE:ICON_PLAY;
+}
+/* ---------- Lo-fi: YouTube live (Lofi Girl) ---------- */
+let yt=null,ytReady=false,ytWant=false;
+function ytInit(){
+  if(yt)return;
+  const f=document.createElement('iframe');
+  f.src='https://www.youtube.com/embed/live_stream?channel=UCSJ4gkVC6NrvII8umztf0Ow&enablejsapi=1&playsinline=1&controls=0&modestbranding=1&rel=0&origin='+encodeURIComponent(location.origin);
+  f.title='Lofi Girl — прямой эфир';f.allow='autoplay; encrypted-media; picture-in-picture';
+  vidBox.appendChild(f);
+  const go=()=>{yt=new YT.Player(f,{events:{onReady:()=>{ytReady=true;yt.setVolume(+vol.value);if(ytWant)yt.playVideo()},
+    onStateChange:e=>{if(e.data===1){playing=true;ui()}else if(e.data===2&&mode==='lofi'){playing=false;ui()}}}})};
+  if(window.YT&&YT.Player)go();else{window.onYouTubeIframeAPIReady=go;const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)}
+}
+function ytPlay(){ytWant=true;ytInit();if(ytReady)yt.playVideo()}
+function ytStop(){ytWant=false;if(ytReady)yt.pauseVideo()}
+/* ---------- Ambient: generative Web Audio ---------- */
+let ac=null,master=null,ambTimers=[],keyRoot=0;
+const SCALES=[[0,2,3,7,9],[0,2,4,7,9],[0,3,5,7,10],[0,2,5,7,9]];
+let scale=SCALES[0];
+const mtof=m=>440*Math.pow(2,(m-69)/12),rnd=a=>a[Math.floor(Math.random()*a.length)];
+function ambBuild(){
+  ac=new (window.AudioContext||window.webkitAudioContext)();
+  master=ac.createGain();master.gain.value=0;
+  const comp=ac.createDynamicsCompressor();
+  const delay=ac.createDelay(2);delay.delayTime.value=.42;const fb=ac.createGain();fb.gain.value=.45;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2200;
+  delay.connect(lp);lp.connect(fb);fb.connect(delay);
+  master.connect(comp);delay.connect(comp);comp.connect(ac.destination);
+  master.wet=delay;
+  // soft rain/vinyl noise
+  const len=ac.sampleRate*4,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);let b0=0;
+  for(let i=0;i<len;i++){const w=Math.random()*2-1;b0=.985*b0+.015*w;d[i]=b0*3+(Math.random()<.0004?(Math.random()-.5)*.6:0)}
+  const ns=ac.createBufferSource();ns.buffer=buf;ns.loop=true;const ng=ac.createGain();ng.gain.value=.05;const nf=ac.createBiquadFilter();nf.type='lowpass';nf.frequency.value=1200;
+  ns.connect(nf);nf.connect(ng);ng.connect(master);ns.start();
+}
+function voice(freq,t,dur,type,peak,toWet){
+  const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+  o.type=type;o.frequency.value=freq;o.detune.value=(Math.random()-.5)*12;f.type='lowpass';f.frequency.value=type==='sine'?3000:900;
+  g.gain.setValueAtTime(0,t);
+  if(type==='sine'&&dur<6){g.gain.linearRampToValueAtTime(peak,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur)}
+  else{g.gain.linearRampToValueAtTime(peak,t+dur*.35);g.gain.linearRampToValueAtTime(peak*.8,t+dur*.7);g.gain.linearRampToValueAtTime(0,t+dur)}
+  o.connect(f);f.connect(g);g.connect(master);if(toWet)g.connect(master.wet);
+  o.start(t);o.stop(t+dur+.1);
+}
+function chord(){
+  const t=ac.currentTime+.05,deg=rnd([0,0,1,2,3,4]),base=48+keyRoot;
+  [0,2,4].forEach((s,i)=>{const idx=deg+s,oct=Math.floor(idx/scale.length),n=base+scale[idx%scale.length]+12*oct;
+    voice(mtof(n),t,11,'triangle',.05,false);voice(mtof(n+12),t+.2,11,'sine',.025,true)});
+  voice(mtof(base-12+scale[deg%scale.length]),t,11,'sine',.06,false);
+  ambTimers.push(setTimeout(chord,(8+Math.random()*4)*1000));
+}
+function bell(){
+  const t=ac.currentTime+.05,n=72+keyRoot+rnd(scale)+rnd([0,0,12]);
+  voice(mtof(n),t,3+Math.random()*2,'sine',.045+Math.random()*.03,true);
+  ambTimers.push(setTimeout(bell,(1.2+Math.random()*4.5)*1000));
+}
+function modulate(){keyRoot=rnd([0,2,3,5,7,8,10])-5;scale=rnd(SCALES);ambTimers.push(setTimeout(modulate,(90+Math.random()*90)*1000))}
+function ambPlay(){
+  if(!ac)ambBuild();ac.resume();
+  master.gain.cancelScheduledValues(ac.currentTime);master.gain.setTargetAtTime(+vol.value/100*.9,ac.currentTime,.8);
+  if(!ambTimers.length){modulate();chord();ambTimers.push(setTimeout(bell,1500))}
+  playing=true;ui();
+}
+function ambStop(){if(!ac)return;master.gain.setTargetAtTime(0,ac.currentTime,.4);ambTimers.forEach(clearTimeout);ambTimers=[];setTimeout(()=>{if(!playing&&ac)ac.suspend()},1500)}
+/* ---------- controls ---------- */
+function start(){if(mode==='lofi'){ambStop();ytPlay()}else{ytStop();ambPlay()}}
+function stop(){ytStop();ambStop();playing=false;ui()}
+btn.addEventListener('click',()=>{const o=!panel.classList.contains('open');panel.classList.toggle('open',o);btn.setAttribute('aria-expanded',o);if(o&&mode==='lofi')ytInit()});
+$('fm-x').addEventListener('click',()=>{panel.classList.remove('open');btn.setAttribute('aria-expanded','false')});
+play.addEventListener('click',()=>{if(playing)stop();else{if(mode==='lofi')playing=true;start();ui()}});
+document.querySelectorAll('[data-fm]').forEach(b=>b.addEventListener('click',()=>{if(mode===b.dataset.fm)return;const was=playing;stop();mode=b.dataset.fm;save();ui();if(mode==='lofi')ytInit();if(was){if(mode==='lofi')playing=true;start();ui()}}));
+vol.addEventListener('input',()=>{save();if(ytReady)yt.setVolume(+vol.value);if(ac&&master&&mode==='ambient'&&playing)master.gain.setTargetAtTime(+vol.value/100*.9,ac.currentTime,.1)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('open')){panel.classList.remove('open');btn.setAttribute('aria-expanded','false')}});
+ui();
+})();
+</script>
 </body>
 </html>
