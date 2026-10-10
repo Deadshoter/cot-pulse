@@ -341,26 +341,9 @@ header{align-items:center;padding-bottom:18px}
 <div class="wrap">
   <header>
     <div class="hdr-l">
-      <button type="button" class="fm-btn" id="fm-btn" aria-label="Музыка для фокуса" title="Музыка для фокуса" aria-expanded="false" aria-controls="fm-panel">
-  <svg class="fm-ic" viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
-  <span class="fm-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-</button>
+      <a class="logo-m" href="./" aria-label="The Mental Analytics — на главную"><img src="assets/m.webp" alt="" width="58" height="47"></a>
       <div class="brand">The Mental Analytics<small>by KerikFX</small></div>
-      <div class="fm-panel" id="fm-panel" role="dialog" aria-label="Музыка для фокуса">
-  <div class="fm-h"><span>Музыка для работы</span><button type="button" class="fm-x" id="fm-x" aria-label="Свернуть">×</button></div>
-  <div class="fm-modes" role="group" aria-label="Режим">
-    <button type="button" class="fm-mode" data-fm="focus"><b><i></i>Фокус</b><span>Ровный тёплый фон без ритма: мягкий шум и медленные аккорды. Включай, когда разбираешь график и считаешь сделку.</span></button>
-    <button type="button" class="fm-mode" data-fm="meditation"><b><i></i>Медитация</b><span>Тянущиеся аккорды, колокольчики и дождь. Чтобы успокоиться перед сессией или выдохнуть после убытка.</span></button>
-    <button type="button" class="fm-mode" data-fm="lofi"><b><i></i>Чилл Lo-fi</b><span>Мягкий бит, джазовые аккорды и треск винила. Спокойный фон для рутины и журнала.</span></button>
-  </div>
-  <div class="fm-ctl">
-    <button type="button" class="fm-play" id="fm-play" aria-label="Играть"><svg id="fm-pi" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 5v14l12-7z" fill="currentColor"/></svg></button>
-    <button type="button" class="fm-next" id="fm-next" title="Новая композиция" aria-label="Новая композиция">⟳</button>
-    <input class="fm-vol" id="fm-vol" type="range" min="0" max="100" value="50" aria-label="Громкость">
-  </div>
-  <div class="fm-note">Музыка сочиняется прямо в браузере: без рекламы, без интернета и никогда не повторяется. ⟳ — сменить тональность и настроение.</div>
-</div>
-    </div>
+          </div>
     <div class="hdr-r">
       <div class="asof">Позиции на <span id="asof"></span> · цены <span id="px-age"></span></div>
       <a class="jrnl" href="https://www.notion.so/3f52f02e5d61812eb085c72f90ac82a8" target="_blank" rel="noopener" title="Трейдинг-журнал Mental в Notion — открыть или скопировать себе">
@@ -893,23 +876,28 @@ load().then(loadCal).then(loadSent);
 })();
 </script>
 <style>
-/* focus music player */
-.hdr-l{display:flex;align-items:center;gap:14px;position:relative;z-index:70}
-.fm-btn{flex:none;width:42px;height:42px;border-radius:11px;display:grid;place-items:center;cursor:pointer;color:var(--long);
-  background:linear-gradient(180deg,rgba(75,214,157,.22),rgba(75,214,157,.08));border:1px solid rgba(75,214,157,.55);
-  box-shadow:0 0 0 3px rgba(75,214,157,.08),0 0 22px rgba(75,214,157,.28),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .15s,box-shadow .15s,border-color .15s}
-.fm-btn:hover{transform:translateY(-1px);border-color:rgba(75,214,157,.9);box-shadow:0 0 0 3px rgba(75,214,157,.14),0 0 30px rgba(75,214,157,.45),inset 0 1px 0 rgba(255,255,255,.2)}
+/* header logo */
+.hdr-l{display:flex;align-items:center;gap:12px}
+.logo-m{flex:none;display:block;width:58px;height:47px;position:relative;filter:drop-shadow(0 0 14px rgba(255,255,255,.22)) drop-shadow(0 6px 18px rgba(0,0,0,.6));transition:transform .2s}
+.logo-m img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;display:block}
+.logo-m:hover{transform:translateY(-1px) scale(1.04)}
+@media (max-width:520px){.logo-m{width:48px;height:39px}}
+/* floating focus music */
+.fm-btn{position:fixed;left:16px;top:50%;transform:translateY(-50%);z-index:90;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;cursor:pointer;color:var(--long);
+  background:linear-gradient(180deg,rgba(75,214,157,.24),rgba(75,214,157,.08));border:1px solid rgba(75,214,157,.6);
+  box-shadow:0 0 0 3px rgba(75,214,157,.08),0 0 24px rgba(75,214,157,.3),inset 0 1px 0 rgba(255,255,255,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:box-shadow .15s,border-color .15s}
+.fm-btn:hover{border-color:rgba(75,214,157,.95);box-shadow:0 0 0 3px rgba(75,214,157,.14),0 0 32px rgba(75,214,157,.48),inset 0 1px 0 rgba(255,255,255,.2)}
 .fm-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .fm-eq{display:none;gap:2px;align-items:flex-end;height:16px}
 .fm-eq i{width:3px;background:var(--long);border-radius:2px;animation:fmEq 1s ease-in-out infinite}
 .fm-eq i:nth-child(2){animation-delay:-.4s}.fm-eq i:nth-child(3){animation-delay:-.7s}.fm-eq i:nth-child(4){animation-delay:-.2s}
 @keyframes fmEq{0%,100%{height:4px}50%{height:16px}}
 .fm-btn.on .fm-eq{display:flex}.fm-btn.on .fm-ic{display:none}
-.fm-panel{position:absolute;left:0;top:calc(100% + 10px);z-index:80;width:300px;padding:14px;border-radius:18px;color:var(--ink);
-  background:linear-gradient(180deg,rgba(28,31,35,.95),rgba(12,14,16,.97));border:1px solid rgba(255,255,255,.14);
+.fm-panel{position:fixed;left:74px;top:50%;z-index:91;width:310px;padding:14px;border-radius:18px;color:var(--ink);
+  background:linear-gradient(180deg,rgba(28,31,35,.96),rgba(12,14,16,.98));border:1px solid rgba(255,255,255,.14);
   box-shadow:0 24px 60px rgba(0,0,0,.6);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:opacity .18s,transform .18s}
-.fm-panel.open{opacity:1;transform:none;pointer-events:auto}
+  opacity:0;transform:translate(-6px,-50%) scale(.98);pointer-events:none;transition:opacity .18s,transform .18s}
+.fm-panel.open{opacity:1;transform:translate(0,-50%);pointer-events:auto}
 .fm-h{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
 .fm-x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:2px 4px}
 .fm-modes{display:grid;gap:6px;margin-bottom:12px}
@@ -920,106 +908,79 @@ load().then(loadCal).then(loadSent);
 .fm-mode span{display:block;font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
 .fm-mode[aria-pressed="true"]{border-color:rgba(75,214,157,.6);background:rgba(75,214,157,.08)}
 .fm-mode[aria-pressed="true"] b i{background:var(--long);box-shadow:0 0 8px var(--long)}
-.fm-ctl{display:flex;align-items:center;gap:10px}
-.fm-play{width:38px;height:38px;border-radius:50%;border:0;background:var(--ink);color:#0b0d0f;cursor:pointer;display:grid;place-items:center;flex:none}
-.fm-next{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);cursor:pointer;font-size:15px;flex:none}
+.fm-now{display:flex;align-items:center;gap:8px;min-height:34px;padding:7px 10px;margin-bottom:10px;border-radius:10px;background:rgba(255,255,255,.04);font-size:12.5px}
+.fm-now span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-now small{color:var(--faint);flex:none;font-size:11px}
+.fm-ctl{display:flex;align-items:center;gap:8px}
+.fm-play{width:40px;height:40px;border-radius:50%;border:0;background:var(--ink);color:#0b0d0f;cursor:pointer;display:grid;place-items:center;flex:none}
+.fm-skip{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);cursor:pointer;display:grid;place-items:center;flex:none}
+.fm-skip:hover{border-color:rgba(255,255,255,.3)}
 .fm-vol{flex:1;accent-color:var(--long);min-width:0}
 .fm-note{font-size:11px;color:var(--faint);margin-top:9px;line-height:1.4}
-@media (max-width:520px){.fm-btn{width:38px;height:38px;border-radius:10px}.fm-panel{width:calc(100vw - 32px);max-width:320px}}
+.fm-note a{color:var(--muted)}
+@media (max-width:640px){.fm-btn{top:auto;bottom:16px;left:12px;transform:none;width:44px;height:44px}
+  .fm-panel{left:12px;top:auto;bottom:70px;width:calc(100vw - 24px);max-width:330px;transform:translateY(8px) scale(.98)}.fm-panel.open{transform:none}}
 </style>
+<button type="button" class="fm-btn" id="fm-btn" aria-label="Музыка для работы" title="Музыка для работы" aria-expanded="false" aria-controls="fm-panel">
+  <svg class="fm-ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+  <span class="fm-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+</button>
+<div class="fm-panel" id="fm-panel" role="dialog" aria-label="Музыка для работы">
+  <div class="fm-h"><span>Музыка для работы</span><button type="button" class="fm-x" id="fm-x" aria-label="Свернуть">×</button></div>
+  <div class="fm-modes" role="group" aria-label="Режим">
+    <button type="button" class="fm-mode" data-fm="focus"><b><i></i>Фокус</b><span>Спокойные инструментальные треки без слов с ровным ритмом. Включай, когда разбираешь график и считаешь сделку.</span></button>
+    <button type="button" class="fm-mode" data-fm="meditation"><b><i></i>Медитация</b><span>Длинные эмбиент-композиции по 15–30 минут. Чтобы успокоиться перед сессией или выдохнуть после убытка.</span></button>
+    <button type="button" class="fm-mode" data-fm="lofi"><b><i></i>Чилл Lo-fi</b><span>Мягкие lo-fi треки с тёплым звуком. Спокойный фон для рутины и журнала.</span></button>
+  </div>
+  <div class="fm-now"><span id="fm-title">Выбери режим и нажми ▶</span><small id="fm-pos"></small></div>
+  <div class="fm-ctl">
+    <button type="button" class="fm-skip" id="fm-prev" aria-label="Предыдущий трек" title="Предыдущий трек"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z" fill="currentColor"/></svg></button>
+    <button type="button" class="fm-play" id="fm-play" aria-label="Играть"><svg id="fm-pi" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 5v14l12-7z" fill="currentColor"/></svg></button>
+    <button type="button" class="fm-skip" id="fm-next" aria-label="Следующий трек" title="Следующий трек"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z" fill="currentColor"/></svg></button>
+    <input class="fm-vol" id="fm-vol" type="range" min="0" max="100" value="60" aria-label="Громкость">
+  </div>
+  <div class="fm-note">Без рекламы. Музыка свободной лицензии CC0: <a href="https://archive.org/details/@loyalty_freak_music" target="_blank" rel="noopener">Loyalty Freak Music</a>, <a href="https://archive.org/search?query=creator%3AHoliznaCC0" target="_blank" rel="noopener">HoliznaCC0</a> (Internet Archive). Треки в каждом режиме перемешиваются и не повторяются, пока не прозвучат все.</div>
+</div>
 <script>
 (function(){
 const $=id=>document.getElementById(id);
-const btn=$('fm-btn'),panel=$('fm-panel'),play=$('fm-play'),vol=$('fm-vol'),pi=$('fm-pi');
+const TRACKS={"lofi":[["loyalty-freak-music-lofi-ambient-songs","Loyalty Freak Music - LOFI AMBIENT SONGS ! - 01 Lack of Color - Drowning in your smile.mp3","Drowning in your smile"],["loyalty-freak-music-lofi-ambient-songs","Loyalty Freak Music - LOFI AMBIENT SONGS ! - 02 Lack of Color - Dancing in the street.mp3","Dancing in the street"],["loyalty-freak-music-lofi-ambient-songs","Loyalty Freak Music - LOFI AMBIENT SONGS ! - 03 Lack of Color - Aeroplane.mp3","Aeroplane"],["loyalty-freak-music-lofi-ambient-songs","Loyalty Freak Music - LOFI AMBIENT SONGS ! - 04 Lack of Color - I'm glad you are here with me.mp3","I'm glad you are here with me"],["loyalty-freak-music-lofi-ambient-songs","Loyalty Freak Music - LOFI AMBIENT SONGS ! - 05 Crying those tears I've kept so long.mp3","Crying those tears I've kept so long"],["loyalty-freak-music-lofi-ambient-songs","Loyalty Freak Music - LOFI AMBIENT SONGS ! - 06 This pain is soft but here.mp3","This pain is soft but here"],["loyalty-freak-music-lofi-ambient-songs","Loyalty Freak Music - LOFI AMBIENT SONGS ! - 07 I hope you're happy.mp3","I hope you're happy"],["loyalty-freak-music-lofi-ambient-songs","Loyalty Freak Music - LOFI AMBIENT SONGS ! - 08 Lack of Color - Sugar and coffee.mp3","Sugar and coffee"],["loyalty-freak-music-chill-for-real","Loyalty Freak Music - CHILL FOR REAL ! - 01 Where I'm High.mp3","Where I'm High"],["loyalty-freak-music-chill-for-real","Loyalty Freak Music - CHILL FOR REAL ! - 02 Happy Sadie.mp3","Happy Sadie"],["loyalty-freak-music-chill-for-real","Loyalty Freak Music - CHILL FOR REAL ! - 05 Soft as a dry pillow.mp3","Soft as a dry pillow"]],"focus":[["LoyaltyFreakMusic-minimalAmbientBounce","Loyalty_Freak_Music_-_01_-_Once_more_with_you.mp3","Once more with you"],["LoyaltyFreakMusic-minimalAmbientBounce","Loyalty_Freak_Music_-_02_-_One_Cool_Minute.mp3","One Cool Minute"],["LoyaltyFreakMusic-minimalAmbientBounce","Loyalty_Freak_Music_-_03_-_Old_Key.mp3","Old Key"],["LoyaltyFreakMusic-minimalAmbientBounce","Loyalty_Freak_Music_-_04_-_Static_Shoes.mp3","Static Shoes"],["LoyaltyFreakMusic-minimalAmbientBounce","Loyalty_Freak_Music_-_05_-_Waiting_TTTT.mp3","Waiting"],["LoyaltyFreakMusic-minimalAmbientBounce","Loyalty_Freak_Music_-_06_-_Lag.mp3","Lag"],["LoyaltyFreakMusic-minimalAmbientBounce","Loyalty_Freak_Music_-_07_-_No_Cadillac.mp3","No Cadillac"],["LoyaltyFreakMusicTOCHILLANDSTAYAWAKE20170923132621469","Loyalty_Freak_Music_-_01_-_Coexistenz.mp3","Coexistenz"],["LoyaltyFreakMusicTOCHILLANDSTAYAWAKE20170923132621469","Loyalty_Freak_Music_-_02_-_Everyone.mp3","Everyone"],["LoyaltyFreakMusicTOCHILLANDSTAYAWAKE20170923132621469","Loyalty_Freak_Music_-_04_-_You_know_why.mp3","You know why"],["LoyaltyFreakMusicTOCHILLANDSTAYAWAKE20170923132621469","Loyalty_Freak_Music_-_05_-_Traveling_in_your_mind.mp3","Traveling in your mind"],["LoyaltyFreakMusicTOCHILLANDSTAYAWAKE20170923132621469","Loyalty_Freak_Music_-_06_-_People_are_spinning.mp3","People are spinning"]],"meditation":[["holizna-cc-0-20-minute-meditation-1","HoliznaCC0 - 20 Minute Meditation 1.mp3","20 Minute Meditation 1"],["holizna-cc-0-20-minute-meditation-2","HoliznaCC0 - 20 Minute Meditation 2.mp3","20 Minute Meditation 2"],["holizna-cc-0-20-minute-meditation-2","HoliznaCC0 - 20 Minute Meditation 3.mp3","20 Minute Meditation 3"],["holizna-cc-0-20-minute-meditation-2","HoliznaCC0 - 20 Minute Meditation 4.mp3","20 Minute Meditation 4"],["holizna-cc-0-20-minute-meditation-2","HoliznaCC0 - 20 Minute Meditation 5.mp3","20 Minute Meditation 5"],["holizna-cc-0-20-minute-meditation-2","HoliznaCC0 - 20 Minute Meditation 6.mp3","20 Minute Meditation 6"],["holizna-cc-0-cosmic-waves","HoliznaCC0 - Cosmic Waves.mp3","Cosmic Waves"],["holizna-cc-0-cosmic-waves","HoliznaCC0 - DreamScape.mp3","DreamScape"],["holizna-cc-0-cosmic-waves","HoliznaCC0 - Rain _ Sleep _ Meditation.mp3","Rain · Sleep · Meditation"]]};
+const ARTIST={lofi:'Loyalty Freak Music',focus:'Loyalty Freak Music',meditation:'HoliznaCC0'};
+const btn=$('fm-btn'),panel=$('fm-panel'),play=$('fm-play'),vol=$('fm-vol'),pi=$('fm-pi'),title=$('fm-title'),pos=$('fm-pos');
 const ICON_PLAY='<path d="M7 5v14l12-7z" fill="currentColor"/>',ICON_PAUSE='<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/>';
-let mode='focus',playing=false;
-const MG={focus:1.9,meditation:1.8,lofi:1};const lvl=()=>+vol.value/100*MG[mode];
-try{const s=JSON.parse(localStorage.getItem('mental.focus')||'{}');if(['focus','meditation','lofi'].includes(s.m))mode=s.m;if(s.v!=null)vol.value=s.v}catch(e){}
+const audio=new Audio();audio.preload='auto';
+let mode='focus',playing=false,loading=false,queue={},idx={},fadeT=null;
+try{const s=JSON.parse(localStorage.getItem('mental.focus')||'{}');if(TRACKS[s.m])mode=s.m;if(s.v!=null)vol.value=s.v}catch(e){}
 function save(){try{localStorage.setItem('mental.focus',JSON.stringify({m:mode,v:+vol.value}))}catch(e){}}
-function ui(){document.querySelectorAll('[data-fm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fm===mode));
-  btn.classList.toggle('on',playing);play.setAttribute('aria-label',playing?'Пауза':'Играть');pi.innerHTML=playing?ICON_PAUSE:ICON_PLAY}
-/* ---------- audio engine ---------- */
-let ac=null,out=null,bus=null,S=null,noiseBuf=null,crackBuf=null,timers=[],sched=null,gen=0;
-const mtof=m=>440*Math.pow(2,(m-69)/12),rnd=a=>a[Math.floor(Math.random()*a.length)],R=(a,b)=>a+Math.random()*(b-a);
-function build(){
-  ac=new (window.AudioContext||window.webkitAudioContext)();
-  out=ac.createGain();out.gain.value=0;
-  const tone=ac.createBiquadFilter();tone.type='lowpass';tone.frequency.value=9000;out.tone=tone;
-  const comp=ac.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=3;
-  bus=ac.createGain();bus.connect(tone);tone.connect(out);out.connect(comp);comp.connect(ac.destination);
-  // simple stereo-ish reverb: two feedback delays
-  const len=ac.sampleRate*4;noiseBuf=ac.createBuffer(1,len,ac.sampleRate);let d=noiseBuf.getChannelData(0),b=0;
-  for(let i=0;i<len;i++){const w=Math.random()*2-1;b=(b+.02*w)/1.02;d[i]=b*3.5}             // brown noise
-  crackBuf=ac.createBuffer(1,len,ac.sampleRate);d=crackBuf.getChannelData(0);
-  for(let i=0;i<len;i++){d[i]=(Math.random()*2-1)*.012+(Math.random()<.0007?(Math.random()-.5)*.9:0)} // vinyl
+function shuffle(n,avoid){const a=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}if(n>1&&a[0]===avoid)[a[0],a[1]]=[a[1],a[0]];return a}
+function ensure(m){if(!queue[m]){queue[m]=shuffle(TRACKS[m].length);idx[m]=0}}
+function cur(){ensure(mode);return TRACKS[mode][queue[mode][idx[mode]]]}
+function url(t){return 'https://archive.org/download/'+t[0]+'/'+encodeURIComponent(t[1])}
+const target=()=>Math.pow(+vol.value/100,1.6);
+function fadeTo(v,ms,done){clearInterval(fadeT);const from=audio.volume,steps=Math.max(1,Math.round(ms/40));let k=0;fadeT=setInterval(()=>{k++;audio.volume=Math.min(1,Math.max(0,from+(v-from)*k/steps));if(k>=steps){clearInterval(fadeT);done&&done()}},40)}
+function ui(){
+  document.querySelectorAll('[data-fm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fm===mode));
+  btn.classList.toggle('on',playing);play.setAttribute('aria-label',playing?'Пауза':'Играть');pi.innerHTML=playing?ICON_PAUSE:ICON_PLAY;
+  const t=cur();title.textContent=(loading?'Загрузка… ':'')+t[2]+' — '+ARTIST[mode];pos.textContent=(idx[mode]+1)+'/'+TRACKS[mode].length;
 }
-/* every start gets its own output + reverb; stopping fades it out and cuts all its notes, tails included */
-function session(){const g=ac.createGain();g.gain.value=1;g.connect(bus);const w=ac.createGain();w.gain.value=.6;
-  [[.37,.42],[.53,.38]].forEach(([t,f])=>{const d=ac.createDelay(2);d.delayTime.value=t;const fg=ac.createGain();fg.gain.value=f;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2500;
-    w.connect(d);d.connect(lp);lp.connect(fg);fg.connect(d);lp.connect(g)});
-  return {g,w}}
-function loop(buf,level,freq,type){const s=ac.createBufferSource();s.buffer=buf;s.loop=true;s.loopStart=Math.random();const f=ac.createBiquadFilter();f.type=type||'lowpass';f.frequency.value=freq;const g=ac.createGain();g.gain.value=0;g.gain.setTargetAtTime(level,ac.currentTime,1.5);s.connect(f);f.connect(g);g.connect(S.g);s.start();return {stop:()=>{g.gain.setTargetAtTime(0,ac.currentTime,.4);setTimeout(()=>{try{s.stop()}catch(e){}},2000)}}}
-function tone(freq,t,dur,o){o=o||{};const osc=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
-  osc.type=o.type||'sine';osc.frequency.value=freq;osc.detune.value=o.det!=null?o.det:(Math.random()-.5)*10;f.type='lowpass';f.frequency.value=o.cut||2500;
-  const pk=o.peak||.05,att=o.att!=null?o.att:dur*.35;
-  g.gain.setValueAtTime(0,t);
-  if(o.pluck){g.gain.linearRampToValueAtTime(pk,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur)}
-  else{g.gain.linearRampToValueAtTime(pk,t+att);g.gain.setValueAtTime(pk,t+Math.max(att,dur-dur*.35));g.gain.linearRampToValueAtTime(0,t+dur)}
-  osc.connect(f);f.connect(g);g.connect(S.g);if(o.wet)g.connect(S.w);osc.start(t);osc.stop(t+dur+.05)}
-function later(fn,ms){const my=gen;timers.push(setTimeout(()=>{if(my===gen&&playing)fn()},ms))}
-const SCALES={minp:[0,3,5,7,10],majp:[0,2,4,7,9],dor:[0,2,3,5,7,9,10],lyd:[0,2,4,6,7,9,11]};
-let key=0,scale=SCALES.majp,beds=[];
-function newMood(){key=Math.floor(R(-5,7));scale=rnd(Object.values(SCALES))}
-/* --- Focus: brown noise + slow warm pads + sparse soft pulses --- */
-function focusStart(){beds.push(loop(noiseBuf,.08,520));out.tone.frequency.setTargetAtTime(6000,ac.currentTime,.5);
-  const pad=()=>{const t=ac.currentTime+.1,base=50+key,deg=rnd([0,1,2,3,4]),sc=scale;
-    [0,2,4,6].forEach(s=>{const i=deg+s,n=base+sc[i%sc.length]+12*Math.floor(i/sc.length);tone(mtof(n),t,16,{type:'triangle',peak:.028,cut:1100});tone(mtof(n+12),t+.3,16,{peak:.012,cut:1800,wet:true})});
-    later(pad,R(11,14)*1000)};
-  const pulse=()=>{const t=ac.currentTime+.05,n=74+key+rnd(scale);tone(mtof(n),t,2.4,{pluck:true,peak:.018,wet:true,cut:2200});later(pulse,R(2.5,7)*1000)};
-  pad();later(pulse,4000);later(()=>{newMood()},R(150,240)*1000)}
-/* --- Meditation: drones + bells + rain --- */
-function medStart(){beds.push(loop(noiseBuf,.05,1400));beds.push(loop(crackBuf,.0,800));out.tone.frequency.setTargetAtTime(7000,ac.currentTime,.5);
-  const drone=()=>{const t=ac.currentTime+.1,b=38+key;tone(mtof(b),t,22,{peak:.06,cut:600,att:6});tone(mtof(b+7),t+2,20,{type:'triangle',peak:.025,cut:900,att:6});tone(mtof(b+12+rnd(scale)),t+4,18,{peak:.02,cut:1500,att:6,wet:true});later(drone,R(15,19)*1000)};
-  const bell=()=>{const t=ac.currentTime+.05,n=76+key+rnd(scale)+rnd([0,0,12]);tone(mtof(n),t,R(4,7),{pluck:true,peak:R(.03,.05),wet:true,cut:5000});tone(mtof(n)*2.76,t,R(1.5,3),{pluck:true,peak:.008,wet:true,cut:6000});later(bell,R(2,7)*1000)};
-  const shift=()=>{newMood();later(shift,R(120,200)*1000)};
-  drone();later(bell,2500);later(shift,R(120,200)*1000)}
-/* --- Chill lo-fi: beat + jazzy chords + bass + crackle --- */
-const PROGS=[[[2,'m7'],[5,'7'],[1,'maj7'],[6,'m7']],[[1,'maj7'],[6,'m7'],[2,'m7'],[5,'7']],[[6,'m7'],[4,'maj7'],[1,'maj7'],[5,'7']],[[4,'maj7'],[3,'m7'],[2,'m7'],[1,'maj7']],[[2,'m9'],[5,'7'],[1,'maj9'],[1,'maj9']]];
-const DEG={1:0,2:2,3:4,4:5,5:7,6:9},Q={'m7':[0,3,7,10],'7':[0,4,7,10],'maj7':[0,4,7,11],'m9':[0,3,10,14],'maj9':[0,4,11,14]};
-let bpm=78,prog=PROGS[0],step=0,nextT=0,lkey=0,bars=0;
-function kick(t){const o=ac.createOscillator(),g=ac.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(42,t+.14);g.gain.setValueAtTime(.55,t);g.gain.exponentialRampToValueAtTime(.001,t+.32);o.connect(g);g.connect(S.g);o.start(t);o.stop(t+.35)}
-function noiseHit(t,dur,level,freq,type,q){const s=ac.createBufferSource();s.buffer=crackBuf.length?noiseBuf:noiseBuf;const f=ac.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q||1;const g=ac.createGain();g.gain.setValueAtTime(level,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(f);f.connect(g);g.connect(S.g);s.start(t,Math.random()*2,dur+.05)}
-function snare(t){noiseHit(t,.22,.35,1800,'bandpass',.8);tone(190,t,.12,{pluck:true,peak:.05,cut:1200,det:0})}
-function hat(t,v){noiseHit(t,.05,.12*v,7000,'highpass',.5)}
-function newTrack(){bpm=Math.round(R(70,86));prog=rnd(PROGS);lkey=Math.floor(R(-4,6));bars=0}
-function lofiStep(t){
-  const s=step%16,bar=Math.floor(step/16),beat=60/bpm/4;
-  if(s===0||s===10||(s===7&&Math.random()<.3))kick(t);
-  if(s===4||s===12)snare(t+(Math.random()*.01));
-  if(s%2===0&&Math.random()>.12)hat(t,s%4===0?.9:.55);
-  if(s===14&&Math.random()<.4)hat(t,.4);
-  const [deg,qual]=prog[bar%prog.length],root=48+lkey+DEG[deg];
-  if(s===0){Q[qual].forEach((iv,i)=>tone(mtof(root+12+iv),t+i*.012,beat*14,{type:'triangle',peak:.035,cut:1400,att:.03,wet:i===3}));tone(mtof(root-12),t,beat*6,{peak:.12,cut:400,att:.02})}
-  if(s===8&&Math.random()<.6)Q[qual].slice(1).forEach((iv,i)=>tone(mtof(root+12+iv),t+i*.015,beat*5,{type:'triangle',peak:.022,cut:1300,att:.02}));
-  if(s===10)tone(mtof(root-12+rnd([0,7,12])),t,beat*4,{peak:.1,cut:400,att:.02});
-  if(s%4===2&&Math.random()<.22){const sc=[0,2,3,5,7,9,10];tone(mtof(root+24+rnd(sc)),t,beat*3,{pluck:true,peak:.03,cut:2600,wet:true})}
-  step++;if(s===15){bars++;if(bars>=32&&bar%prog.length===prog.length-1)newTrack()}
-}
-function lofiStart(){beds.push(loop(crackBuf,.9,4000,'highpass'));beds.push(loop(noiseBuf,.02,300));out.tone.frequency.setTargetAtTime(3800,ac.currentTime,.3);
-  newTrack();step=0;nextT=ac.currentTime+.15;
-  sched=setInterval(()=>{const beat=60/bpm/4;while(nextT<ac.currentTime+.25){const sw=(step%2===1)?beat*.18:0;lofiStep(nextT+sw);nextT+=beat}},40)}
-/* ---------- control ---------- */
-function stopAll(){gen++;if(S){const old=S;S=null;old.g.gain.cancelScheduledValues(ac.currentTime);old.g.gain.setTargetAtTime(0,ac.currentTime,.06);setTimeout(()=>{try{old.g.disconnect()}catch(e){}},800)}timers.forEach(clearTimeout);timers=[];if(sched){clearInterval(sched);sched=null}beds.forEach(b=>b.stop());beds=[]}
-function start(){if(!ac)build();ac.resume();stopAll();S=session();playing=true;newMood();
-  out.gain.cancelScheduledValues(ac.currentTime);out.gain.setValueAtTime(out.gain.value,ac.currentTime);out.gain.setTargetAtTime(lvl(),ac.currentTime,.6);
-  ({focus:focusStart,meditation:medStart,lofi:lofiStart})[mode]();ui()}
-function stop(){playing=false;ui();if(!ac)return;out.gain.setTargetAtTime(0,ac.currentTime,.3);setTimeout(()=>{if(!playing){stopAll();ac.suspend()}},1200)}
+function load(autoplay){const t=cur();loading=autoplay;audio.src=url(t);audio.currentTime=0;ui();
+  if(autoplay){audio.volume=0;audio.play().then(()=>{loading=false;playing=true;fadeTo(target(),900);ui()}).catch(()=>{loading=false;playing=false;ui()})}}
+function step(d){ensure(mode);idx[mode]+=d;const n=TRACKS[mode].length;
+  if(idx[mode]>=n){const last=queue[mode][n-1];queue[mode]=shuffle(n,last);idx[mode]=0}
+  if(idx[mode]<0)idx[mode]=0;}
+function switchTrack(d){const wasPlaying=playing||loading;const go=()=>{step(d);load(wasPlaying)};if(playing)fadeTo(0,250,go);else go()}
+function startStop(){if(playing){fadeTo(0,300,()=>{audio.pause();playing=false;ui()});return}
+  if(audio.src&&!audio.ended&&audio.currentTime>0){audio.volume=0;audio.play().then(()=>{playing=true;fadeTo(target(),600);ui()});}else load(true)}
+audio.addEventListener('ended',()=>{step(1);load(true)});
+audio.addEventListener('error',()=>{if(playing||loading){step(1);setTimeout(()=>load(true),500)}});
+audio.addEventListener('waiting',()=>{loading=true;ui()});audio.addEventListener('playing',()=>{loading=false;ui()});
 btn.addEventListener('click',()=>{const o=!panel.classList.contains('open');panel.classList.toggle('open',o);btn.setAttribute('aria-expanded',o)});
 $('fm-x').addEventListener('click',()=>{panel.classList.remove('open');btn.setAttribute('aria-expanded','false')});
-play.addEventListener('click',()=>{playing?stop():start()});
-$('fm-next').addEventListener('click',()=>{if(playing)start();else start()});
-document.querySelectorAll('[data-fm]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.fm;save();start()}));
-vol.addEventListener('input',()=>{save();if(ac&&playing)out.gain.setTargetAtTime(lvl(),ac.currentTime,.08)});
+play.addEventListener('click',startStop);
+$('fm-next').addEventListener('click',()=>switchTrack(1));
+$('fm-prev').addEventListener('click',()=>{if(audio.currentTime>5&&playing){audio.currentTime=0;return}switchTrack(-1)});
+document.querySelectorAll('[data-fm]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.fm===mode&&playing)return;const go=()=>{audio.pause();mode=b.dataset.fm;save();load(true)};if(playing)fadeTo(0,250,go);else go()}));
+vol.addEventListener('input',()=>{save();if(playing){clearInterval(fadeT);audio.volume=target()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('open')){panel.classList.remove('open');btn.setAttribute('aria-expanded','false')}});
 document.addEventListener('click',e=>{if(panel.classList.contains('open')&&!panel.contains(e.target)&&!btn.contains(e.target)){panel.classList.remove('open');btn.setAttribute('aria-expanded','false')}});
 ui();
