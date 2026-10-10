@@ -35,7 +35,9 @@ jobs:
       - name: Crowd sentiment (Myfxbook)
         working-directory: scripts
         continue-on-error: true
-        run: python -u update_sentiment.py
+        run: |
+          pip install --quiet curl_cffi || true
+          python -u update_sentiment.py
       - name: Commit
         id: commit
         run: |

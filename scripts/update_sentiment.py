@@ -18,8 +18,24 @@ ROW = re.compile(
 
 
 def fetch():
+    """Myfxbook sits behind Cloudflare, which rejects plain Python clients from cloud IPs.
+    curl_cffi mimics a real Chrome TLS fingerprint; urllib is the fallback."""
     last = None
-    for attempt in range(3):
+    try:
+        from curl_cffi import requests as creq
+        for imp in ("chrome", "safari", "chrome120", "edge"):
+            try:
+                r = creq.get(URL, impersonate=imp, timeout=30, headers={"Accept-Language": "en-US,en;q=0.9"})
+                print(f"curl_cffi[{imp}]: HTTP {r.status_code}")
+                if r.status_code == 200 and "Short" in r.text:
+                    return r.text
+                last = f"HTTP {r.status_code}"
+            except Exception as e:
+                last = e
+            time.sleep(2)
+    except ImportError:
+        print("curl_cffi not installed")
+    for attempt in range(2):
         try:
             req = urllib.request.Request(URL, headers={"User-Agent": UA, "Accept": "text/html", "Accept-Language": "en-US,en;q=0.9"})
             with urllib.request.urlopen(req, timeout=30) as r:
