@@ -1,49 +1,35 @@
-"""Retail crowd sentiment from Myfxbook Community Outlook; writes data/sentiment.json.
+"""Retail crowd sentiment: Dukascopy SWFX Sentiment Index; writes data/sentiment.json.
 
-For every symbol on the public outlook page: share of traders' volume in shorts and longs,
-volume in lots and number of open positions. Myfxbook refreshes the page every few minutes.
-Prints changed=true|false to $GITHUB_OUTPUT.
+For each instrument: share of Dukascopy clients' volume in longs and shorts (percent),
+now and 6 hours / 1 day / 5 days ago. Prints changed=true|false to $GITHUB_OUTPUT.
 """
+import json
 import os
-import re
 import time
 import urllib.request
 
 from common import UA, load, save, now_iso
 
-URL = "https://www.myfxbook.com/community/outlook"
-ROW = re.compile(
-    r'<td rowspan="2">([A-Z0-9.]{3,12})</td>\s*<td>Short</td>\s*<td[^>]*>(\d+)%</td>\s*<td[^>]*>([\d.,]+) lots</td>\s*<td[^>]*>(\d+)</td>'
-    r'\s*</tr>\s*<tr>\s*<td>Long</td>\s*<td[^>]*>(\d+)%</td>\s*<td[^>]*>([\d.,]+) lots</td>\s*<td[^>]*>(\d+)</td>')
+URL = "https://jetta.dukascopy.com/v1/sentiments/instruments"
+CODES = ["XAU-USD", "XAG-USD", "COPPER.CMD-USD", "LIGHT.CMD-USD", "GAS.CMD-USD", "DOLLAR.IDX-USD",
+         "EUR-USD", "GBP-USD", "USD-JPY", "AUD-USD", "USD-CAD", "USA500.IDX-USD", "USATECH.IDX-USD",
+         "BTC-USD", "ETH-USD"]
 
 
 def fetch():
-    """Myfxbook sits behind Cloudflare, which rejects plain Python clients from cloud IPs.
-    curl_cffi mimics a real Chrome TLS fingerprint; urllib is the fallback."""
+    body = json.dumps({"instrumentCodes": CODES}).encode()
     last = None
-    try:
-        from curl_cffi import requests as creq
-        for imp in ("chrome", "safari", "chrome120", "edge"):
-            try:
-                r = creq.get(URL, impersonate=imp, timeout=30, headers={"Accept-Language": "en-US,en;q=0.9"})
-                print(f"curl_cffi[{imp}]: HTTP {r.status_code}")
-                if r.status_code == 200 and "Short" in r.text:
-                    return r.text
-                last = f"HTTP {r.status_code}"
-            except Exception as e:
-                last = e
-            time.sleep(2)
-    except ImportError:
-        print("curl_cffi not installed")
-    for attempt in range(2):
+    for attempt in range(3):
         try:
-            req = urllib.request.Request(URL, headers={"User-Agent": UA, "Accept": "text/html", "Accept-Language": "en-US,en;q=0.9"})
+            req = urllib.request.Request(URL, data=body, method="POST", headers={
+                "User-Agent": UA, "Content-Type": "application/json", "Accept": "application/json",
+                "Origin": "https://widgets.dukascopy.com", "Referer": "https://widgets.dukascopy.com/"})
             with urllib.request.urlopen(req, timeout=30) as r:
-                return r.read().decode("utf-8", "replace")
+                return json.load(r)
         except Exception as e:
             last = e
             time.sleep(3 * (attempt + 1))
-    raise SystemExit(f"Myfxbook request failed: {last}")
+    raise SystemExit(f"Dukascopy request failed: {last}")
 
 
 def set_output(changed):
@@ -54,20 +40,27 @@ def set_output(changed):
 
 
 def main():
-    html = fetch()
+    data = fetch()
     sym = {}
-    for s, sp, sv, sn, lp, lv, ln in ROW.findall(html):
-        sym[s] = {"s": int(sp), "l": int(lp), "sv": float(sv.replace(",", "")), "lv": float(lv.replace(",", "")),
-                  "sn": int(sn), "ln": int(ln)}
-    if len(sym) < 10:
-        raise SystemExit(f"Parsed only {len(sym)} symbols - page format changed? Keeping previous file")
+    for it in data.get("instrumentIndexes", []):
+        ix = it.get("indexes") or {}
+        last = ix.get("LAST")
+        if not last:
+            continue
+        row = {"l": last["long"], "s": last["short"]}
+        for k, short in (("SIX_HOURS", "l6h"), ("ONE_DAY", "l1d"), ("FIVE_DAYS", "l5d")):
+            if ix.get(k):
+                row[short] = ix[k]["long"]
+        sym[it["instrumentCode"]] = row
+    if len(sym) < 8:
+        raise SystemExit(f"Got only {len(sym)} instruments - API changed? Keeping previous file")
     old = load("sentiment.json") or {}
     if old.get("symbols") == sym:
-        print(f"Sentiment unchanged ({len(sym)} symbols)")
+        print(f"Sentiment unchanged ({len(sym)} instruments)")
         set_output(False)
         return
-    save("sentiment.json", {"updatedAt": now_iso(), "source": "Myfxbook Community Outlook", "symbols": sym})
-    print(f"Sentiment updated: {len(sym)} symbols")
+    save("sentiment.json", {"updatedAt": now_iso(), "source": "Dukascopy SWFX Sentiment Index", "symbols": sym})
+    print(f"Sentiment updated: {len(sym)} instruments")
     set_output(True)
 
 

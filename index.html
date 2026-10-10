@@ -350,7 +350,7 @@ header{align-items:center;padding-bottom:18px}
       <div class="v-side" id="v-side"></div>
       <div class="v-line" id="v-line"></div>
     </div>
-    <div class="crowd" id="crowd" title="Доля объёма позиций розничных трейдеров в шорте и лонге (Myfxbook Community Outlook). Обновляется каждые 5 минут.">
+    <div class="crowd" id="crowd" title="Доля объёма позиций клиентов-трейдеров в лонге и шорте (Dukascopy SWFX Sentiment Index). Робот обновляет каждые 5 минут.">
       <div class="crowd-h">Настроение толпы</div>
       <svg viewBox="0 0 140 78" aria-hidden="true">
         <defs><linearGradient id="cg" x1="0" x2="1"><stop offset="0" stop-color="var(--short)"/><stop offset=".5" stop-color="#8a8f96"/><stop offset="1" stop-color="var(--long)"/></linearGradient></defs>
@@ -743,9 +743,9 @@ function calcRun(){
    rrRows+'</dl>'+warn;
 }
 
-// ---------- crowd sentiment (retail, Myfxbook via robot) ----------
-// [symbol, invert]: yen and CAD futures are quoted against USD pairs, so USDJPY long = short yen.
-const CROWD={'088691':['XAUUSD',0],'084691':['XAGUSD',0],'099741':['EURUSD',0],'096742':['GBPUSD',0],'097741':['USDJPY',1],'232741':['AUDUSD',0],'090741':['USDCAD',1],'133741':['BTCUSD',0],'146021':['ETHUSD',0]};
+// ---------- crowd sentiment (retail clients, Dukascopy SWFX via robot) ----------
+// [instrument, invert]: yen and CAD futures vs USD/JPY and USD/CAD, so USD/JPY long = short yen.
+const CROWD={'088691':['XAU-USD',0],'084691':['XAG-USD',0],'085692':['COPPER.CMD-USD',0],'067651':['LIGHT.CMD-USD',0],'023651':['GAS.CMD-USD',0],'098662':['DOLLAR.IDX-USD',0],'099741':['EUR-USD',0],'096742':['GBP-USD',0],'097741':['USD-JPY',1],'232741':['AUD-USD',0],'090741':['USD-CAD',1],'13874A':['USA500.IDX-USD',0],'209742':['USATECH.IDX-USD',0],'133741':['BTC-USD',0],'146021':['ETH-USD',0]};
 let SENT=null;
 function renderCrowd(){
   const box=document.getElementById('crowd');if(!box)return;
@@ -753,17 +753,18 @@ function renderCrowd(){
   const ndl=document.getElementById('crowd-ndl');
   if(!d){box.classList.add('off');ndl.style.transform='rotate(0deg)';
     document.getElementById('crowd-s').textContent='—';document.getElementById('crowd-l').textContent='—';
-    document.getElementById('crowd-hint').textContent=m?'Данные загружаются…':'Для этого актива нет данных по рознице';
-    document.getElementById('crowd-n').textContent=m?'':'Есть по золоту, серебру, валютам и крипте';return}
+    document.getElementById('crowd-hint').textContent=m?'Данные загружаются…':'Нет данных по этому активу';
+    document.getElementById('crowd-n').textContent='';return}
   box.classList.remove('off');
-  let L=d.l,S=d.s;if(m[1]){L=d.s;S=d.l}
-  ndl.style.transform='rotate('+((L-50)*1.8).toFixed(1)+'deg)';
+  const inv=v=>v==null?null:(m[1]?100-v:v);
+  const L=Math.round(inv(d.l)),S=100-L,L1=inv(d.l1d);
+  ndl.style.transform='rotate('+((inv(d.l)-50)*1.8).toFixed(1)+'deg)';
   document.getElementById('crowd-s').textContent='Шорт '+S+'%';
   document.getElementById('crowd-l').textContent='Лонг '+L+'%';
   const big=Math.max(L,S);
   document.getElementById('crowd-hint').innerHTML=big>=70?'Толпа сильно в '+(L>S?'<b class="up">лонге</b>':'<b class="dn">шорте</b>')+' — часто сигнал против толпы':big>=60?'Перевес в '+(L>S?'лонг':'шорт'):'Толпа без явного перевеса';
-  const n=(d.sn||0)+(d.ln||0);
-  document.getElementById('crowd-n').textContent=(m[1]?m[0]+' (инверсия) · ':m[0]+' · ')+n.toLocaleString('ru-RU')+' позиций · '+ago(SENT.updatedAt);
+  let ch='';if(L1!=null){const dd=Math.round(inv(d.l)-L1);ch=dd===0?'за сутки без изменений':'за сутки '+(dd>0?'+':'−')+Math.abs(dd)+' п.п. '+(dd>0?'в лонг':'в шорт')}
+  document.getElementById('crowd-n').textContent=[ch,m[0].replace('-','/').replace(/\.(CMD|IDX)/,'')+(m[1]?' (инверсия)':'')+' · '+ago(SENT.updatedAt)].filter(Boolean).join(' · ');
 }
 function loadSent(){return getJSON('data/sentiment.json').then(j=>{if(j&&j.symbols){SENT=j;renderCrowd()}}).catch(()=>{if(!SENT)renderCrowd()})}
 setInterval(()=>{if(!document.hidden)loadSent()},60000);
