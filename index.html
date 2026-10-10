@@ -939,7 +939,7 @@ function save(){try{localStorage.setItem('mental.focus',JSON.stringify({m:mode,v
 function ui(){document.querySelectorAll('[data-fm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fm===mode));
   btn.classList.toggle('on',playing);play.setAttribute('aria-label',playing?'Пауза':'Играть');pi.innerHTML=playing?ICON_PAUSE:ICON_PLAY}
 /* ---------- audio engine ---------- */
-let ac=null,out=null,bus=null,wet=null,noiseBuf=null,crackBuf=null,timers=[],sched=null,gen=0;
+let ac=null,out=null,bus=null,S=null,noiseBuf=null,crackBuf=null,timers=[],sched=null,gen=0;
 const mtof=m=>440*Math.pow(2,(m-69)/12),rnd=a=>a[Math.floor(Math.random()*a.length)],R=(a,b)=>a+Math.random()*(b-a);
 function build(){
   ac=new (window.AudioContext||window.webkitAudioContext)();
@@ -948,22 +948,24 @@ function build(){
   const comp=ac.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=3;
   bus=ac.createGain();bus.connect(tone);tone.connect(out);out.connect(comp);comp.connect(ac.destination);
   // simple stereo-ish reverb: two feedback delays
-  wet=ac.createGain();wet.gain.value=.6;
-  [[.37,.42],[.53,.38]].forEach(([t,f])=>{const d=ac.createDelay(2);d.delayTime.value=t;const g=ac.createGain();g.gain.value=f;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2500;
-    wet.connect(d);d.connect(lp);lp.connect(g);g.connect(d);lp.connect(bus)});
   const len=ac.sampleRate*4;noiseBuf=ac.createBuffer(1,len,ac.sampleRate);let d=noiseBuf.getChannelData(0),b=0;
   for(let i=0;i<len;i++){const w=Math.random()*2-1;b=(b+.02*w)/1.02;d[i]=b*3.5}             // brown noise
   crackBuf=ac.createBuffer(1,len,ac.sampleRate);d=crackBuf.getChannelData(0);
   for(let i=0;i<len;i++){d[i]=(Math.random()*2-1)*.012+(Math.random()<.0007?(Math.random()-.5)*.9:0)} // vinyl
 }
-function loop(buf,level,freq,type){const s=ac.createBufferSource();s.buffer=buf;s.loop=true;s.loopStart=Math.random();const f=ac.createBiquadFilter();f.type=type||'lowpass';f.frequency.value=freq;const g=ac.createGain();g.gain.value=0;g.gain.setTargetAtTime(level,ac.currentTime,1.5);s.connect(f);f.connect(g);g.connect(bus);s.start();return {stop:()=>{g.gain.setTargetAtTime(0,ac.currentTime,.4);setTimeout(()=>{try{s.stop()}catch(e){}},2000)}}}
+/* every start gets its own output + reverb; stopping fades it out and cuts all its notes, tails included */
+function session(){const g=ac.createGain();g.gain.value=1;g.connect(bus);const w=ac.createGain();w.gain.value=.6;
+  [[.37,.42],[.53,.38]].forEach(([t,f])=>{const d=ac.createDelay(2);d.delayTime.value=t;const fg=ac.createGain();fg.gain.value=f;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2500;
+    w.connect(d);d.connect(lp);lp.connect(fg);fg.connect(d);lp.connect(g)});
+  return {g,w}}
+function loop(buf,level,freq,type){const s=ac.createBufferSource();s.buffer=buf;s.loop=true;s.loopStart=Math.random();const f=ac.createBiquadFilter();f.type=type||'lowpass';f.frequency.value=freq;const g=ac.createGain();g.gain.value=0;g.gain.setTargetAtTime(level,ac.currentTime,1.5);s.connect(f);f.connect(g);g.connect(S.g);s.start();return {stop:()=>{g.gain.setTargetAtTime(0,ac.currentTime,.4);setTimeout(()=>{try{s.stop()}catch(e){}},2000)}}}
 function tone(freq,t,dur,o){o=o||{};const osc=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
   osc.type=o.type||'sine';osc.frequency.value=freq;osc.detune.value=o.det!=null?o.det:(Math.random()-.5)*10;f.type='lowpass';f.frequency.value=o.cut||2500;
   const pk=o.peak||.05,att=o.att!=null?o.att:dur*.35;
   g.gain.setValueAtTime(0,t);
   if(o.pluck){g.gain.linearRampToValueAtTime(pk,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur)}
   else{g.gain.linearRampToValueAtTime(pk,t+att);g.gain.setValueAtTime(pk,t+Math.max(att,dur-dur*.35));g.gain.linearRampToValueAtTime(0,t+dur)}
-  osc.connect(f);f.connect(g);g.connect(bus);if(o.wet)g.connect(wet);osc.start(t);osc.stop(t+dur+.05)}
+  osc.connect(f);f.connect(g);g.connect(S.g);if(o.wet)g.connect(S.w);osc.start(t);osc.stop(t+dur+.05)}
 function later(fn,ms){const my=gen;timers.push(setTimeout(()=>{if(my===gen&&playing)fn()},ms))}
 const SCALES={minp:[0,3,5,7,10],majp:[0,2,4,7,9],dor:[0,2,3,5,7,9,10],lyd:[0,2,4,6,7,9,11]};
 let key=0,scale=SCALES.majp,beds=[];
@@ -985,8 +987,8 @@ function medStart(){beds.push(loop(noiseBuf,.05,1400));beds.push(loop(crackBuf,.
 const PROGS=[[[2,'m7'],[5,'7'],[1,'maj7'],[6,'m7']],[[1,'maj7'],[6,'m7'],[2,'m7'],[5,'7']],[[6,'m7'],[4,'maj7'],[1,'maj7'],[5,'7']],[[4,'maj7'],[3,'m7'],[2,'m7'],[1,'maj7']],[[2,'m9'],[5,'7'],[1,'maj9'],[1,'maj9']]];
 const DEG={1:0,2:2,3:4,4:5,5:7,6:9},Q={'m7':[0,3,7,10],'7':[0,4,7,10],'maj7':[0,4,7,11],'m9':[0,3,10,14],'maj9':[0,4,11,14]};
 let bpm=78,prog=PROGS[0],step=0,nextT=0,lkey=0,bars=0;
-function kick(t){const o=ac.createOscillator(),g=ac.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(42,t+.14);g.gain.setValueAtTime(.55,t);g.gain.exponentialRampToValueAtTime(.001,t+.32);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.35)}
-function noiseHit(t,dur,level,freq,type,q){const s=ac.createBufferSource();s.buffer=crackBuf.length?noiseBuf:noiseBuf;const f=ac.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q||1;const g=ac.createGain();g.gain.setValueAtTime(level,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(f);f.connect(g);g.connect(bus);s.start(t,Math.random()*2,dur+.05)}
+function kick(t){const o=ac.createOscillator(),g=ac.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(42,t+.14);g.gain.setValueAtTime(.55,t);g.gain.exponentialRampToValueAtTime(.001,t+.32);o.connect(g);g.connect(S.g);o.start(t);o.stop(t+.35)}
+function noiseHit(t,dur,level,freq,type,q){const s=ac.createBufferSource();s.buffer=crackBuf.length?noiseBuf:noiseBuf;const f=ac.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q||1;const g=ac.createGain();g.gain.setValueAtTime(level,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(f);f.connect(g);g.connect(S.g);s.start(t,Math.random()*2,dur+.05)}
 function snare(t){noiseHit(t,.22,.35,1800,'bandpass',.8);tone(190,t,.12,{pluck:true,peak:.05,cut:1200,det:0})}
 function hat(t,v){noiseHit(t,.05,.12*v,7000,'highpass',.5)}
 function newTrack(){bpm=Math.round(R(70,86));prog=rnd(PROGS);lkey=Math.floor(R(-4,6));bars=0}
@@ -1007,8 +1009,8 @@ function lofiStart(){beds.push(loop(crackBuf,.9,4000,'highpass'));beds.push(loop
   newTrack();step=0;nextT=ac.currentTime+.15;
   sched=setInterval(()=>{const beat=60/bpm/4;while(nextT<ac.currentTime+.25){const sw=(step%2===1)?beat*.18:0;lofiStep(nextT+sw);nextT+=beat}},40)}
 /* ---------- control ---------- */
-function stopAll(){gen++;timers.forEach(clearTimeout);timers=[];if(sched){clearInterval(sched);sched=null}beds.forEach(b=>b.stop());beds=[]}
-function start(){if(!ac)build();ac.resume();stopAll();playing=true;newMood();
+function stopAll(){gen++;if(S){const old=S;S=null;old.g.gain.cancelScheduledValues(ac.currentTime);old.g.gain.setTargetAtTime(0,ac.currentTime,.06);setTimeout(()=>{try{old.g.disconnect()}catch(e){}},800)}timers.forEach(clearTimeout);timers=[];if(sched){clearInterval(sched);sched=null}beds.forEach(b=>b.stop());beds=[]}
+function start(){if(!ac)build();ac.resume();stopAll();S=session();playing=true;newMood();
   out.gain.cancelScheduledValues(ac.currentTime);out.gain.setValueAtTime(out.gain.value,ac.currentTime);out.gain.setTargetAtTime(lvl(),ac.currentTime,.6);
   ({focus:focusStart,meditation:medStart,lofi:lofiStart})[mode]();ui()}
 function stop(){playing=false;ui();if(!ac)return;out.gain.setTargetAtTime(0,ac.currentTime,.3);setTimeout(()=>{if(!playing){stopAll();ac.suspend()}},1200)}
