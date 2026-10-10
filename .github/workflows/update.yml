@@ -55,6 +55,12 @@ jobs:
           pip install --quiet --disable-pip-version-check yfinance
           python -u update_prices.py
 
+      - name: Economic calendar (Forex Factory)
+        if: github.event_name != 'push'
+        working-directory: scripts
+        continue-on-error: true
+        run: python -u update_calendar.py
+
       - name: AI arguments (Anthropic)
         if: github.event_name != 'push'
         working-directory: scripts
