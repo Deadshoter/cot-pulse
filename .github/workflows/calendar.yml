@@ -1,0 +1,51 @@
+name: Economic calendar (fast)
+
+on:
+  schedule:
+    # Every 5 minutes on weekdays: picks up actual values soon after a release.
+    - cron: "*/5 * * * 1-5"
+    # Every 30 minutes on weekends (next week's schedule appears).
+    - cron: "15,45 * * * 0,6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update
+  cancel-in-progress: false
+
+jobs:
+  calendar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch calendar
+        id: cal
+        working-directory: scripts
+        run: python -u update_tvcal.py
+      - name: Commit
+        if: steps.cal.outputs.changed == 'true'
+        run: |
+          git config user.name "cot-pulse-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/calendar.json
+          git commit -m "calendar: update $(date -u +%Y-%m-%dT%H:%MZ)"
+          git pull --rebase --quiet
+          git push
+      - if: steps.cal.outputs.changed == 'true'
+        uses: actions/configure-pages@v5
+      - if: steps.cal.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - if: steps.cal.outputs.changed == 'true'
+        uses: actions/deploy-pages@v4
+    environment:
+      name: github-pages

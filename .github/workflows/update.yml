@@ -63,11 +63,11 @@ jobs:
           pip install --quiet --disable-pip-version-check yfinance
           python -u update_fx.py
 
-      - name: Economic calendar (Forex Factory)
+      - name: Economic calendar (TradingView)
         if: github.event_name != 'push'
         working-directory: scripts
         continue-on-error: true
-        run: python -u update_calendar.py
+        run: python -u update_tvcal.py
 
       - name: AI arguments (Anthropic)
         if: github.event_name != 'push'

@@ -251,6 +251,41 @@ header{align-items:center;padding-bottom:18px}
 .tv iframe{color-scheme:light}
 .tv-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px}
 .tv-note{font-size:12px;color:var(--faint);margin-top:10px}
+
+/* economic calendar table (Forex Factory style) */
+.ect-panel{margin-top:4px}
+.ect-wrap{max-height:640px;overflow:auto;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.25)}
+.ect{width:100%;border-collapse:collapse;font-size:13.5px;min-width:720px}
+.ect thead th{position:sticky;top:0;z-index:1;background:#0d1013;text-align:left;font-weight:500;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line)}
+.ect thead th:nth-child(n+6){text-align:right}
+.ect td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle}
+.ect tr.dfirst td{border-top:1px solid var(--line-hi)}
+.ect tr.dfirst:first-child td{border-top:0}
+.ect-d{width:64px;white-space:nowrap;color:var(--ink)}
+.ect-d b{display:block;font-weight:600;font-size:12.5px}
+.ect-d span{font-size:12px;color:var(--muted)}
+.ect-t{width:84px;white-space:nowrap;color:var(--muted);position:relative}
+.ect-c{width:76px;white-space:nowrap}
+.ect-c img{vertical-align:-2px;margin-right:6px;border-radius:2px}
+.ect-c span{font-size:12.5px;color:var(--ink)}
+.ect-i{width:26px}
+.ect-n{color:var(--ink)}
+.ect-n small{color:var(--faint);font-size:11.5px}
+.ect-v{width:84px;text-align:right;white-space:nowrap;color:var(--muted)}
+.ect-a{color:var(--ink);font-weight:600}
+.ect-a.hi{color:var(--long)} .ect-a.lo{color:var(--short)}
+.ect tr.past td{opacity:.55}
+.ect tr.past .ect-a{opacity:1}
+.ect tr.today:not(.past) td{background:rgba(255,255,255,.025)}
+.ect tr.next td{background:rgba(255,255,255,.07)}
+.ect-now{display:inline-block;width:0;height:0;border-left:6px solid var(--long);border-top:5px solid transparent;border-bottom:5px solid transparent;margin-right:6px}
+.ect-empty{padding:18px 12px;color:var(--muted);text-align:center}
+.imp2{display:inline-block;width:15px;height:11px;border-radius:2px;position:relative;vertical-align:middle}
+.imp2::before{content:"";position:absolute;left:0;top:-3px;width:7px;height:4px;border-radius:2px 2px 0 0;background:inherit}
+.imp2-high{background:#EF4444}.imp2-med{background:#F59E0B}.imp2-low{background:#EAD24A}.imp2-hol{background:#7C848C}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.tv-note .imp2{width:12px;height:9px;margin:0 2px}
+@media (min-width:981px){.side{position:sticky!important;top:calc(env(safe-area-inset-top,0px) + 16px)}}
 </style>
 
 </head>
@@ -348,23 +383,30 @@ header{align-items:center;padding-bottom:18px}
     </details>
   </section>
 
-  <div class="col-h">События</div>
-  <section class="cal" aria-label="Экономический календарь">
-    <div class="panel-h"><h2>Экономический календарь</h2><span class="src">факт, прогноз, пред.</span></div>
+  </aside>
+  </div>
+
+  <section class="cal ect-panel" aria-label="Экономический календарь">
+    <div class="panel-h"><h2>Экономический календарь</h2><span class="src" id="ect-upd"></span></div>
     <div class="tv-tabs">
+      <div class="seg seg-sm" role="group" aria-label="Неделя">
+        <button type="button" data-cweek="0">Эта неделя</button><button type="button" data-cweek="1">Следующая</button>
+      </div>
       <div class="seg seg-sm" role="group" aria-label="Важность">
         <button type="button" data-cimp="high">Важные</button><button type="button" data-cimp="med">+ средние</button><button type="button" data-cimp="all">Все</button>
       </div>
-      <div class="seg seg-sm" role="group" aria-label="Страны">
-        <button type="button" data-calm="all">Все страны</button><button type="button" data-calm="asset">По активу</button>
+      <div class="seg seg-sm" role="group" aria-label="Валюты">
+        <button type="button" data-calm="all">Все валюты</button><button type="button" data-calm="asset">По активу</button>
       </div>
     </div>
-    <div class="tv" id="tv-cal"></div>
-    <p class="tv-note">Календарь TradingView обновляется сам: факт появляется сразу после выхода данных, в календаре можно листать на неделю вперёд. Время — ваше.</p>
+    <div class="ect-wrap">
+      <table class="ect">
+        <thead><tr><th>Дата</th><th>Время</th><th>Валюта</th><th><span class="sr">Важность</span></th><th>Событие</th><th>Факт</th><th>Прогноз</th><th>Пред.</th></tr></thead>
+        <tbody id="ect-body"></tbody>
+      </table>
+    </div>
+    <p class="tv-note">Время — ваше. Цвет — важность события: <i class="imp2 imp2-high"></i> высокая, <i class="imp2 imp2-med"></i> средняя, <i class="imp2 imp2-low"></i> низкая, <i class="imp2 imp2-hol"></i> выходной. Факт подсвечен зелёным, если вышел выше прогноза, красным — ниже (это не всегда хорошо для валюты: например, рост безработицы). Данные TradingView, обновляются каждые 5 минут.</p>
   </section>
-
-  </aside>
-  </div>
 
   <div class="foot">
   <details class="guide" id="guide">
@@ -645,51 +687,70 @@ function calcRun(){
    '</dl>'+warn;
 }
 
-// ---------- news & economic calendar (TradingView widgets, real time) ----------
-const TVSYM={'088691':'OANDA:XAUUSD','084691':'OANDA:XAGUSD','085692':'COMEX:HG1!','067651':'TVC:USOIL','023651':'NYMEX:NG1!','098662':'TVC:DXY','099741':'FX:EURUSD','096742':'FX:GBPUSD','097741':'FX:USDJPY','232741':'FX:AUDUSD','090741':'FX:USDCAD','13874A':'SP:SPX','209742':'NASDAQ:NDX','133741':'BITSTAMP:BTCUSD','146021':'BITSTAMP:ETHUSD'};
-const TVCTRY={'088691':'us','084691':'us','085692':'us,cn','067651':'us','023651':'us','098662':'us','099741':'eu,us','096742':'gb,us','097741':'jp,us','232741':'au,cn,us','090741':'ca,us','13874A':'us','209742':'us','133741':'us','146021':'us'};
-const ALLCTRY='us,eu,gb,jp,cn,au,ca,ch,nz,de';
-let newsMode='forex',calMode='all',calImp='high',tvNewsKey='',tvCalKey='';
-try{const o=JSON.parse(localStorage.getItem('cotpulse.tv')||'{}');newsMode=o.n||newsMode;calMode=o.c||calMode;calImp=o.i||calImp}catch(e){}
-function tvEmbed(box,file,cfg){
-  box.innerHTML='';
-  const c=document.createElement('div');c.className='tradingview-widget-container';
-  const w=document.createElement('div');w.className='tradingview-widget-container__widget';c.appendChild(w);
-  const s=document.createElement('script');s.type='text/javascript';s.async=true;
-  s.src='https://s3.tradingview.com/external-embedding/'+file;s.text=JSON.stringify(cfg);c.appendChild(s);
-  box.appendChild(c);
+// ---------- economic calendar (own table, data: TradingView via robot) ----------
+const ECCY={'088691':['USD'],'084691':['USD'],'085692':['USD','CNY'],'067651':['USD'],'023651':['USD'],'098662':['USD'],'099741':['EUR','USD'],'096742':['GBP','USD'],'097741':['JPY','USD'],'232741':['AUD','CNY','USD'],'090741':['CAD','USD'],'13874A':['USD'],'209742':['USD'],'133741':['USD'],'146021':['USD']};
+const IMPN={high:3,med:2,low:1,hol:0};
+const IMPT={high:'Высокая важность',med:'Средняя важность',low:'Низкая важность',hol:'Выходной'};
+const WD=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+let CAL=null,calMode='all',calImp='high',calWeek=null,ectKey='';
+try{const o=JSON.parse(localStorage.getItem('cotpulse.ect')||'{}');calMode=o.c||calMode;calImp=o.i||calImp}catch(e){}
+function weekStart(off){const d=new Date();d.setHours(0,0,0,0);const wd=(d.getDay()+6)%7;d.setDate(d.getDate()-wd+7*off);return d}
+if(calWeek===null){const wd=new Date().getDay();calWeek=(wd===6||wd===0)?1:0}
+function fv(v,e){
+  if(v===null||v===undefined||v==='')return '';
+  let n=typeof v==='number'?v:parseFloat(v);
+  let s=isNaN(n)?String(v):(Math.abs(n)>=100?n.toLocaleString('en-US',{maximumFractionDigits:1}):String(+n.toFixed(3)));
+  if(e.s)s+=e.s;
+  if(e.u==='%')s+='%';else if(e.u&&e.u.length<=4&&!/^[a-z]/.test(e.u))s+=' '+e.u;
+  return s;
 }
-function tvSync(force){
-  const nb=document.getElementById('tv-news'),cb=document.getElementById('tv-cal');if(!cb)return;
-  const a=ASSETS.find(x=>x.c===cur);
-  document.querySelectorAll('[data-news]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.news===newsMode));
+function renderCal(){
+  const body=document.getElementById('ect-body');if(!body)return;
   document.querySelectorAll('[data-calm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.calm===calMode));
   document.querySelectorAll('[data-cimp]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cimp===calImp));
-  const nk=newsMode==='asset'?'s:'+TVSYM[cur]:'m:'+newsMode;
-  if(nb&&(force||nk!==tvNewsKey)){tvNewsKey=nk;
-    const cfg={isTransparent:true,displayMode:'regular',width:'100%',height:520,colorTheme:'dark',locale:'ru'};
-    if(newsMode==='asset'){cfg.feedMode='symbol';cfg.symbol=TVSYM[cur]}else if(newsMode==='all'){cfg.feedMode='all_symbols'}else{cfg.feedMode='market';cfg.market=newsMode}
-    tvEmbed(nb,'embed-widget-timeline.js',cfg)}
-  const nt=document.getElementById('news-t');if(nt)nt.textContent=newsMode==='asset'?a.n:'';
-  const ck=calMode+'|'+calImp+'|'+(calMode==='asset'?TVCTRY[cur]:'');
-  if(force||ck!==tvCalKey){tvCalKey=ck;
-    tvEmbed(cb,'embed-widget-events.js',{colorTheme:'dark',isTransparent:true,width:'100%',height:620,locale:'ru',
-      importanceFilter:calImp==='high'?'1':calImp==='med'?'0,1':'-1,0,1',countryFilter:calMode==='asset'?TVCTRY[cur]:ALLCTRY})}
+  document.querySelectorAll('[data-cweek]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.cweek===calWeek));
+  if(!CAL){body.innerHTML='<tr><td colspan="8" class="ect-empty">Календарь загружается…</td></tr>';return}
+  const ws=weekStart(calWeek),we=new Date(ws);we.setDate(we.getDate()+7);
+  const min=calImp==='high'?3:calImp==='med'?2:0,ccy=ECCY[cur]||['USD'];
+  const ev=CAL.events.filter(e=>{const d=new Date(e.d);return d>=ws&&d<we&&IMPN[e.i]>=min&&(calMode==='all'||ccy.includes(e.c))});
+  const now=Date.now();let nextId=null;for(const e of ev){if(new Date(e.d).getTime()>now-60000){nextId=e.id;break}}
+  let html='',day='';
+  for(const e of ev){
+    const d=new Date(e.d),k=d.toDateString(),first=k!==day;day=k;
+    const past=d.getTime()<now-60000,isNext=e.id===nextId,today=k===new Date().toDateString();
+    const allDay=d.getUTCHours()===0&&d.getUTCMinutes()===0&&e.i==='hol';
+    const time=allDay?'Весь день':d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    const a=fv(e.a,e),f=fv(e.f,e),p=fv(e.p,e);
+    let acls='';if(a&&f&&!isNaN(+e.a)&&!isNaN(+e.f)&&+e.a!==+e.f)acls=+e.a>+e.f?' hi':' lo';
+    html+='<tr class="'+(first?'dfirst ':'')+(past?'past ':'')+(isNext?'next ':'')+(today?'today':'')+'">'+
+      '<td class="ect-d">'+(first?'<b>'+WD[d.getDay()]+'</b><span>'+d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}).replace('.','')+'</span>':'')+'</td>'+
+      '<td class="ect-t num">'+(isNext?'<i class="ect-now" title="Следующее событие"></i>':'')+time+'</td>'+
+      '<td class="ect-c"><img src="https://flagcdn.com/20x15/'+esc(e.co==='eu'?'eu':e.co)+'.png" width="20" height="15" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span class="num">'+esc(e.c)+'</span></td>'+
+      '<td class="ect-i"><i class="imp2 imp2-'+e.i+'" title="'+IMPT[e.i]+'"></i></td>'+
+      '<td class="ect-n">'+esc(e.t)+(e.per?' <small>'+esc(e.per)+'</small>':'')+'</td>'+
+      '<td class="ect-v num ect-a'+acls+'">'+esc(a)+'</td><td class="ect-v num">'+esc(f)+'</td><td class="ect-v num ect-p">'+esc(p)+'</td></tr>';
+  }
+  body.innerHTML=html||'<tr><td colspan="8" class="ect-empty">Нет событий под этот фильтр.</td></tr>';
+  const upd=document.getElementById('ect-upd');if(upd)upd.textContent='обновлено '+ago(CAL.updatedAt);
+  const key=calWeek+'|'+calImp+'|'+calMode+'|'+cur;
+  if(key!==ectKey){ectKey=key;const nx=body.querySelector('tr.next')||body.querySelector('tr.today');const wrap=document.querySelector('.ect-wrap');if(nx&&wrap)wrap.scrollTop=Math.max(0,nx.offsetTop-80)}
 }
-function saveTv(){try{localStorage.setItem('cotpulse.tv',JSON.stringify({n:newsMode,c:calMode,i:calImp}))}catch(e){}}
+function saveEct(){try{localStorage.setItem('cotpulse.ect',JSON.stringify({c:calMode,i:calImp}))}catch(e){}}
 document.addEventListener('click',e=>{
-  const n=e.target.closest('[data-news]');if(n){newsMode=n.dataset.news;saveTv();tvSync()}
-  const c=e.target.closest('[data-calm]');if(c){calMode=c.dataset.calm;saveTv();tvSync()}
-  const i=e.target.closest('[data-cimp]');if(i){calImp=i.dataset.cimp;saveTv();tvSync()}
+  const c=e.target.closest('[data-calm]');if(c){calMode=c.dataset.calm;saveEct();renderCal()}
+  const i=e.target.closest('[data-cimp]');if(i){calImp=i.dataset.cimp;saveEct();renderCal()}
+  const w=e.target.closest('[data-cweek]');if(w){calWeek=+w.dataset.cweek;renderCal()}
 });
+function loadEct(){return getJSON('data/calendar.json').then(c=>{if(c&&c.source==='TradingView'){CAL=c;renderCal()}}).catch(()=>{})}
 // hooks called by render()/load()
-let CAL=null;
-function renderNextEv(){tvSync()}
-function renderCal(){}
+function renderNextEv(){if(CAL)renderCal()}
 function loadCal(){
+  loadEct();
   return getJSON('data/fx.json').then(f=>{FXD=f}).catch(()=>{}).then(()=>{if(!window.__calcReady){window.__calcReady=1;calcInit()}else calcRun()});
 }
-setInterval(()=>{if(!document.hidden)loadCal()},PRICE_POLL_MS);
+setInterval(()=>{if(!document.hidden)getJSON('data/fx.json').then(f=>{FXD=f;calcRun()}).catch(()=>{})},PRICE_POLL_MS);
+setInterval(()=>{if(!document.hidden)loadEct()},90000);
+setInterval(()=>{if(CAL&&!document.hidden)renderCal()},60000);
 
 async function load(){
   try{
