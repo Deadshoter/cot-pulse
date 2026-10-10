@@ -701,7 +701,7 @@ function fv(v,e){
   let n=typeof v==='number'?v:parseFloat(v);
   let s=isNaN(n)?String(v):(Math.abs(n)>=100?n.toLocaleString('en-US',{maximumFractionDigits:1}):String(+n.toFixed(3)));
   if(e.s)s+=e.s;
-  if(e.u==='%')s+='%';else if(e.u&&e.u.length<=4&&!/^[a-z]/.test(e.u))s+=' '+e.u;
+  if(e.u==='%')s+='%';
   return s;
 }
 function renderCal(){
