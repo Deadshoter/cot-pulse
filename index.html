@@ -315,6 +315,15 @@ header{align-items:center;padding-bottom:18px}
 .ect tr.ect-day.is-today td{background:rgba(255,255,255,.09)}
 .ect tr.dfirst td{border-top:0}
 @media (max-width:420px){.ect-v.ect-p,.ect thead th:last-child{display:none}}
+
+/* journal button */
+.hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.jrnl{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;padding:7px 14px;border-radius:999px;
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 6px 20px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .15s,border-color .15s,background .15s}
+.jrnl:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.35);background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.06))}
+.jrnl:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.jrnl-arr{color:var(--muted);font-weight:400}
 </style>
 
 </head>
@@ -332,7 +341,13 @@ header{align-items:center;padding-bottom:18px}
 <div class="wrap">
   <header>
     <div class="brand">The Mental Analytics<small>by KerikFX</small></div>
-    <div class="asof">Позиции на <span id="asof"></span> · цены <span id="px-age"></span></div>
+    <div class="hdr-r">
+      <div class="asof">Позиции на <span id="asof"></span> · цены <span id="px-age"></span></div>
+      <a class="jrnl" href="https://www.notion.so/3f52f02e5d61812eb085c72f90ac82a8" target="_blank" rel="noopener" title="Трейдинг-журнал Mental в Notion — открыть или скопировать себе">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18v15H6.5A1.5 1.5 0 0 0 5 19.5v-15Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H18v-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 8h5M9 11h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Журнал<span class="jrnl-arr" aria-hidden="true">↗</span>
+      </a>
+    </div>
   </header>
 
   <div class="board">
