@@ -515,21 +515,21 @@ header{align-items:center;padding-bottom:18px}
 <script>
 (function(){
 const ASSETS=[
- {c:'088691',n:'Золото',s:'GC',rel:3,rn:'COMEX — главная площадка для фьючерсов на золото, позиции фондов здесь хорошо отражают спекулятивный спрос. Не видны ETF и физический спрос центробанков.'},
- {c:'084691',n:'Серебро',s:'SI',rel:3,rn:'COMEX — основной фьючерсный рынок серебра. Рынок узкий: небольшие сдвиги позиций сильно двигают цену.'},
- {c:'085692',n:'Медь',s:'HG',rel:2,rn:'Показательно для американского рынка, но основная торговля медью идёт на LME (Лондон) и SHFE (Шанхай), которых здесь нет.'},
- {c:'067651',n:'Нефть WTI',s:'CL',rel:2,rn:'Здесь один физический контракт NYMEX; часть спекулятивных позиций держится в смежных контрактах WTI и в Brent (ICE), которых здесь нет.'},
- {c:'023651',n:'Газ',s:'NG',rel:2,rn:'Рынок, где доминируют производители и хеджеры; шорт фондов в газе — частое затяжное состояние, а цену сильно двигает погода.'},
- {c:'098662',n:'Доллар (DXY)',s:'DX',rel:1,rn:'Фьючерс на индекс доллара маленький (OI ~50 тыс.). Настроение по доллару точнее видно по сумме позиций в евро, иене, фунте и других валютах.'},
- {c:'099741',n:'Евро',s:'6E',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка, основная торговля идёт вне бирж. Но позиции фондов здесь — классический и широко отслеживаемый индикатор.'},
- {c:'096742',n:'Фунт',s:'6B',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка, но позиции фондов здесь традиционно используются как индикатор настроения.'},
- {c:'097741',n:'Иена',s:'6J',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка. Позиции по иене часто связаны с керри-трейдом и могут резко разворачиваться.'},
- {c:'232741',n:'Австр. доллар',s:'6A',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка; используется как индикатор аппетита к риску.'},
- {c:'090741',n:'Канад. доллар',s:'6C',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка; позиции часто следуют за нефтью.'},
+ {c:'088691',n:'Gold',s:'GC',rel:3,rn:'COMEX — главная площадка для фьючерсов на золото, позиции фондов здесь хорошо отражают спекулятивный спрос. Не видны ETF и физический спрос центробанков.'},
+ {c:'084691',n:'Silver',s:'SI',rel:3,rn:'COMEX — основной фьючерсный рынок серебра. Рынок узкий: небольшие сдвиги позиций сильно двигают цену.'},
+ {c:'085692',n:'Copper',s:'HG',rel:2,rn:'Показательно для американского рынка, но основная торговля медью идёт на LME (Лондон) и SHFE (Шанхай), которых здесь нет.'},
+ {c:'067651',n:'WTI Oil',s:'CL',rel:2,rn:'Здесь один физический контракт NYMEX; часть спекулятивных позиций держится в смежных контрактах WTI и в Brent (ICE), которых здесь нет.'},
+ {c:'023651',n:'Natural Gas',s:'NG',rel:2,rn:'Рынок, где доминируют производители и хеджеры; шорт фондов в газе — частое затяжное состояние, а цену сильно двигает погода.'},
+ {c:'098662',n:'US Dollar (DXY)',s:'DX',rel:1,rn:'Фьючерс на индекс доллара маленький (OI ~50 тыс.). Настроение по доллару точнее видно по сумме позиций в евро, иене, фунте и других валютах.'},
+ {c:'099741',n:'Euro',s:'6E',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка, основная торговля идёт вне бирж. Но позиции фондов здесь — классический и широко отслеживаемый индикатор.'},
+ {c:'096742',n:'British Pound',s:'6B',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка, но позиции фондов здесь традиционно используются как индикатор настроения.'},
+ {c:'097741',n:'Japanese Yen',s:'6J',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка. Позиции по иене часто связаны с керри-трейдом и могут резко разворачиваться.'},
+ {c:'232741',n:'Australian Dollar',s:'6A',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка; используется как индикатор аппетита к риску.'},
+ {c:'090741',n:'Canadian Dollar',s:'6C',rel:2,rn:'Фьючерсы CME — малая часть валютного рынка; позиции часто следуют за нефтью.'},
  {c:'13874A',n:'S&P 500',s:'ES',rel:1,rn:'Шорт фондов в S&P часто означает хедж портфеля акций или арбитраж, а не ставку на падение. Направление здесь читается плохо, важнее изменения и экстремумы.'},
  {c:'209742',n:'Nasdaq 100',s:'NQ',rel:2,rn:'Как и в S&P 500, часть позиций — хеджи портфелей, но спекулятивная составляющая здесь выражена сильнее.'},
  {c:'133741',n:'Bitcoin',s:'BTC',rel:1,rn:'CME — малая часть рынка биткоина (основная торговля на криптобиржах). Шорты фондов здесь часто — арбитраж «купил ETF, продал фьючерс», а не ставка на падение.'},
- {c:'146021',n:'Ether',s:'ETH',rel:1,rn:'CME — малая часть рынка эфира; позиции фондов во многом арбитражные, к тому же открытый интерес небольшой.'}
+ {c:'146021',n:'Ethereum',s:'ETH',rel:1,rn:'CME — малая часть рынка эфира; позиции фондов во многом арбитражные, к тому же открытый интерес небольшой.'}
 ];
 
 const REL=['','Низкая','Средняя','Высокая'];
@@ -558,8 +558,8 @@ function analyze(c){
   const d1=net-d.nc[t-1],d4=net-d.nc[t-4],thr=d.oi[t]*0.005;
   let move;
   if(Math.abs(d1)<thr)move={txt:'Почти без изменений',arr:'→',cls:''};
-  else if(side==='long')move=d1>0?{txt:'Наращивают лонг',arr:'↑',cls:'up'}:{txt:'Сокращают лонг',arr:'↓',cls:'dn'};
-  else move=d1<0?{txt:'Наращивают шорт',arr:'↓',cls:'dn'}:{txt:'Сокращают шорт',arr:'↑',cls:'up'};
+  else if(side==='long')move=d1>0?{txt:'Наращивают Long',arr:'↑',cls:'up'}:{txt:'Сокращают Long',arr:'↓',cls:'dn'};
+  else move=d1<0?{txt:'Наращивают Short',arr:'↓',cls:'dn'}:{txt:'Сокращают Short',arr:'↑',cls:'up'};
   return {net,side,pctLong,index,strength,d1,d4,move,hedge:d.cm[t]>=0?'long':'short',L};
 }
 function priceInfo(c){
@@ -592,18 +592,18 @@ function render(){
   const a=ASSETS.find(x=>x.c===cur),r=A[cur];
   document.getElementById('v-name').innerHTML=`${a.n}<span>${a.s}</span>`;
   renderPrice();
-  const side=document.getElementById('v-side');side.textContent=r.side==='long'?'Лонг':'Шорт';side.className='v-side '+r.side;
+  const side=document.getElementById('v-side');side.textContent=r.side==='long'?'Long':'Short';side.className='v-side '+r.side;
   const share=r.side==='long'?r.pctLong:1-r.pctLong;
   document.getElementById('v-line').innerHTML=`<b>${Math.round(share*100)}%</b> позиций фондов — ставки ${r.side==='long'?'на рост':'на падение'}. ${r.move.txt==='Почти без изменений'?'За неделю позиция почти не изменилась.':r.move.txt+' за неделю.'}`;
   const pl=Math.round(r.pctLong*100);
   document.getElementById('sp-l').style.width=pl+'%';document.getElementById('sp-s').style.width=(100-pl)+'%';
-  document.getElementById('sp-ll').innerHTML=`Лонг <span class="num">${pl}%</span> · ${nf.format(r.L.ncl)}`;
-  document.getElementById('sp-sl').innerHTML=`${nf.format(r.L.ncs)} · <span class="num">${100-pl}%</span> Шорт`;
+  document.getElementById('sp-ll').innerHTML=`Long <span class="num">${pl}%</span> · ${nf.format(r.L.ncl)}`;
+  document.getElementById('sp-sl').innerHTML=`${nf.format(r.L.ncs)} · <span class="num">${100-pl}%</span> Short`;
   document.getElementById('f-week').innerHTML=`<span class="${r.move.cls}">${r.move.arr}</span> ${r.move.txt}`;
   document.getElementById('f-week-d').textContent=`${sgn(r.d1)} контр. · 4 нед ${sgn(r.d4)}`;
   document.getElementById('f-meter').style.left=r.index.toFixed(1)+'%';
   document.getElementById('f-strength').innerHTML=`<b style="color:var(--ink);font-weight:600">${strengthWord(r.strength)}.</b> ${strengthNote(r)}`;
-  document.getElementById('f-hedge').innerHTML=`<span class="${r.hedge==='long'?'up':'dn'}">${r.hedge==='long'?'В лонге':'В шорте'}</span>`;
+  document.getElementById('f-hedge').innerHTML=`<span class="${r.hedge==='long'?'up':'dn'}">${r.hedge==='long'?'Long':'Short'}</span>`;
   document.getElementById('f-hedge-d').textContent=r.hedge===r.side?'Заодно с фондами':'Против фондов — обычно страхуют свой товар';
   document.getElementById('rel').innerHTML=`<i>${[1,2,3].map(k=>`<b class="${k<=a.rel?'on':''}"></b>`).join('')}</i> Показательность данных: ${REL[a.rel].toLowerCase()}`;
   document.getElementById('rel-note').textContent=a.rn;
@@ -613,8 +613,8 @@ function render(){
   if(CAL)renderCal();
   drawSpark();
   const lst=document.getElementById('list');if(lst)lst.innerHTML=ASSETS.map(x=>{const q=A[x.c];return `<button type="button" class="item" data-c="${x.c}" aria-current="${x.c===cur}">
-    <span class="nm">${x.n}</span><span class="tag ${q.side}">${q.side==='long'?'Лонг':'Шорт'}</span>
-    <span class="mini" title="Лонг ${Math.round(q.pctLong*100)}%"><i style="width:${(q.pctLong*100).toFixed(1)}%"></i></span>
+    <span class="nm">${x.n}</span><span class="tag ${q.side}">${q.side==='long'?'Long':'Short'}</span>
+    <span class="mini" title="Long ${Math.round(q.pctLong*100)}%"><i style="width:${(q.pctLong*100).toFixed(1)}%"></i></span>
     <span class="arr ${q.move.cls}" title="${q.move.txt}">${q.move.arr}</span></button>`}).join('');
 }
 
@@ -786,8 +786,8 @@ function renderCrowd(){
   const inv=v=>v==null?null:(m[1]?100-v:v);
   const L=Math.round(inv(d.l)),S=100-L,L1=inv(d.l1d);
   ndl.style.transform='rotate('+((inv(d.l)-50)*1.8).toFixed(1)+'deg)';
-  document.getElementById('crowd-s').textContent='Шорт '+S+'%';
-  document.getElementById('crowd-l').textContent='Лонг '+L+'%';
+  document.getElementById('crowd-s').textContent='Short '+S+'%';
+  document.getElementById('crowd-l').textContent='Long '+L+'%';
   const big=Math.max(L,S);
   document.getElementById('crowd-hint').innerHTML=big>=70?'Толпа сильно в '+(L>S?'<b class="up">лонге</b>':'<b class="dn">шорте</b>')+' — часто сигнал против толпы':big>=60?'Перевес в '+(L>S?'лонг':'шорт'):'Толпа без явного перевеса';
   let ch='';if(L1!=null){const dd=Math.round(inv(d.l)-L1);ch=dd===0?'за сутки без изменений':'за сутки '+(dd>0?'+':'−')+Math.abs(dd)+' п.п. '+(dd>0?'в лонг':'в шорт')}
