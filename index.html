@@ -388,8 +388,6 @@ header{align-items:center;padding-bottom:18px}
     </div>
   </section>
 
-  <div class="col-h">Все рынки</div>
-  <div class="list" id="list"></div>
 
   </div>
 
@@ -585,7 +583,7 @@ function render(){
   if(typeof renderCrowd==='function')renderCrowd();
   if(CAL)renderCal();
   drawSpark();
-  document.getElementById('list').innerHTML=ASSETS.map(x=>{const q=A[x.c];return `<button type="button" class="item" data-c="${x.c}" aria-current="${x.c===cur}">
+  const lst=document.getElementById('list');if(lst)lst.innerHTML=ASSETS.map(x=>{const q=A[x.c];return `<button type="button" class="item" data-c="${x.c}" aria-current="${x.c===cur}">
     <span class="nm">${x.n}</span><span class="tag ${q.side}">${q.side==='long'?'Лонг':'Шорт'}</span>
     <span class="mini" title="Лонг ${Math.round(q.pctLong*100)}%"><i style="width:${(q.pctLong*100).toFixed(1)}%"></i></span>
     <span class="arr ${q.move.cls}" title="${q.move.txt}">${q.move.arr}</span></button>`}).join('');
