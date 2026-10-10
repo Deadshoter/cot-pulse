@@ -348,17 +348,7 @@ header{align-items:center;padding-bottom:18px}
     </details>
   </section>
 
-  <div class="col-h">Новости и события</div>
-  <section class="cal" aria-label="Новости">
-    <div class="panel-h"><h2>Новости <span class="src" id="news-t"></span></h2><span class="src">в реальном времени</span></div>
-    <div class="tv-tabs">
-      <div class="seg seg-sm" role="group" aria-label="Лента новостей">
-        <button type="button" data-news="asset">По активу</button><button type="button" data-news="forex">Форекс</button><button type="button" data-news="all">Все рынки</button>
-      </div>
-    </div>
-    <div class="tv" id="tv-news"></div>
-  </section>
-
+  <div class="col-h">События</div>
   <section class="cal" aria-label="Экономический календарь">
     <div class="panel-h"><h2>Экономический календарь</h2><span class="src">факт, прогноз, пред.</span></div>
     <div class="tv-tabs">
@@ -370,7 +360,7 @@ header{align-items:center;padding-bottom:18px}
       </div>
     </div>
     <div class="tv" id="tv-cal"></div>
-    <p class="tv-note">Новости и календарь — виджеты TradingView: обновляются сами по мере публикации, факт появляется сразу после выхода данных, в календаре можно листать на неделю вперёд. Время — ваше.</p>
+    <p class="tv-note">Календарь TradingView обновляется сам: факт появляется сразу после выхода данных, в календаре можно листать на неделю вперёд. Время — ваше.</p>
   </section>
 
   </aside>
@@ -670,17 +660,17 @@ function tvEmbed(box,file,cfg){
   box.appendChild(c);
 }
 function tvSync(force){
-  const nb=document.getElementById('tv-news'),cb=document.getElementById('tv-cal');if(!nb||!cb)return;
+  const nb=document.getElementById('tv-news'),cb=document.getElementById('tv-cal');if(!cb)return;
   const a=ASSETS.find(x=>x.c===cur);
   document.querySelectorAll('[data-news]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.news===newsMode));
   document.querySelectorAll('[data-calm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.calm===calMode));
   document.querySelectorAll('[data-cimp]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cimp===calImp));
   const nk=newsMode==='asset'?'s:'+TVSYM[cur]:'m:'+newsMode;
-  if(force||nk!==tvNewsKey){tvNewsKey=nk;
+  if(nb&&(force||nk!==tvNewsKey)){tvNewsKey=nk;
     const cfg={isTransparent:true,displayMode:'regular',width:'100%',height:520,colorTheme:'dark',locale:'ru'};
     if(newsMode==='asset'){cfg.feedMode='symbol';cfg.symbol=TVSYM[cur]}else if(newsMode==='all'){cfg.feedMode='all_symbols'}else{cfg.feedMode='market';cfg.market=newsMode}
     tvEmbed(nb,'embed-widget-timeline.js',cfg)}
-  document.getElementById('news-t').textContent=newsMode==='asset'?a.n:'';
+  const nt=document.getElementById('news-t');if(nt)nt.textContent=newsMode==='asset'?a.n:'';
   const ck=calMode+'|'+calImp+'|'+(calMode==='asset'?TVCTRY[cur]:'');
   if(force||ck!==tvCalKey){tvCalKey=ck;
     tvEmbed(cb,'embed-widget-events.js',{colorTheme:'dark',isTransparent:true,width:'100%',height:620,locale:'ru',
