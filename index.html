@@ -120,6 +120,32 @@ details.guide[open] summary{border-bottom:1px solid var(--line)}
 .guide-body h4{margin:16px 0 6px;font-size:14px}
 .guide-body p,.guide-body li{max-width:68ch;margin:0 0 6px}
 .guide-body ul,.guide-body ol{padding-left:20px;margin:0}
+
+.next-ev{margin-top:20px}
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+@media (max-width:520px){.cal{padding:16px 14px}}
+.cal-ctl{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:none;border:0;padding:5px 11px;font-size:13px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.chk{font-size:13px;color:var(--muted);display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.cal-day{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:16px 0 2px}
+.cal-day.today{color:var(--ink)}
+.evs{list-style:none;margin:6px 0 0;padding:0}
+.ev{display:grid;grid-template-columns:auto 10px 34px minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.ev:first-child{border-top:0}
+.ev.past{opacity:.45}
+.ev.soon{background:var(--sunk);margin:0 -8px;padding-inline:8px;border-radius:8px}
+.ev-t{color:var(--muted);font-size:13px;white-space:nowrap}
+.ev-c{font-size:12px;color:var(--muted)}
+.ev-n{min-width:0}
+.ev-n small{display:block;color:var(--faint);font-size:12px}
+.ev-u{font-size:12px;color:var(--faint);white-space:nowrap}
+.imp{width:9px;height:9px;border-radius:50%;display:inline-block;align-self:center}
+.imp-high{background:var(--short)}.imp-medium{background:var(--med,#E0A13A)}.imp-low{background:var(--line)}.imp-holiday{background:var(--faint)}
+.cal-meta{font-size:12px;color:var(--faint);margin-top:12px}
+.cal-empty{color:var(--muted);font-size:14px;margin:12px 0 0}
+@media (max-width:520px){.ev{grid-template-columns:auto 10px minmax(0,1fr)}.ev-c,.ev-u{display:none}}
 </style>
 
 </head>
@@ -151,6 +177,8 @@ details.guide[open] summary{border-bottom:1px solid var(--line)}
       <div class="fact"><div class="k">Хеджеры (производители, банки)</div><div class="v" id="f-hedge"></div><div class="d" id="f-hedge-d"></div></div>
     </div>
 
+    <div class="next-ev" id="next-ev"></div>
+
     <div class="why">
       <div class="why-h"><span class="why-t" id="why-t">Почему — разбор по цифрам</span><span class="why-age" id="why-age"></span></div>
       <div id="why-body"></div>
@@ -167,6 +195,18 @@ details.guide[open] summary{border-bottom:1px solid var(--line)}
 
   <div class="h2">Все рынки</div>
   <div class="list" id="list"></div>
+
+  <div class="h2">Экономический календарь</div>
+  <section class="cal" aria-live="polite">
+    <div class="cal-ctl">
+      <div class="seg" role="group" aria-label="Важность">
+        <button type="button" data-lvl="High">Важные</button><button type="button" data-lvl="Medium">+ средние</button><button type="button" data-lvl="Low">Все</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="cal-mine"> Только валюты выбранного актива</label>
+    </div>
+    <div id="cal"></div>
+    <div class="cal-meta" id="cal-meta"></div>
+  </section>
 
   <details class="guide" id="guide">
     <summary>Как пользоваться и насколько можно доверять</summary>
@@ -291,6 +331,8 @@ function render(){
   document.getElementById('rel').innerHTML=`<i>${[1,2,3].map(k=>`<b class="${k<=a.rel?'on':''}"></b>`).join('')}</i> Показательность данных: ${REL[a.rel].toLowerCase()}`;
   document.getElementById('rel-note').textContent=a.rn;
   renderWhy(a,r);
+  renderNextEv();
+  if(CAL)renderCal();
   drawSpark();
   document.getElementById('list').innerHTML=ASSETS.map(x=>{const q=A[x.c];return `<button type="button" class="item" data-c="${x.c}" aria-current="${x.c===cur}">
     <span class="nm">${x.n}</span><span class="tag ${q.side}">${q.side==='long'?'Лонг':'Шорт'}</span>
@@ -338,6 +380,41 @@ function drawSpark(){
   document.getElementById('sp-cap').textContent=sgn(d[d.length-1])+' контр.';
 }
 
+// ---------- economic calendar (Forex Factory) ----------
+const CCY={'088691':['USD'],'084691':['USD'],'085692':['USD','CNY'],'067651':['USD','All'],'023651':['USD'],'098662':['USD'],'099741':['EUR','USD'],'096742':['GBP','USD'],'097741':['JPY','USD'],'232741':['AUD','CNY','USD'],'090741':['CAD','USD'],'13874A':['USD'],'209742':['USD'],'133741':['USD'],'146021':['USD']};
+const IMP={High:3,Medium:2,Low:1,Holiday:0};
+const IMPRU={High:'Высокая важность',Medium:'Средняя важность',Low:'Низкая важность',Holiday:'Выходной на рынке'};
+let CAL=null,calLevel='High',calMine=false;
+try{const o=JSON.parse(localStorage.getItem('cotpulse.cal')||'{}');if(o.l)calLevel=o.l;calMine=!!o.m}catch(e){}
+const evDate=e=>new Date(e.d);
+const hm=d=>d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+function until(d){const m=Math.round((d-Date.now())/60000);if(m<0)return'';if(m<60)return'через '+m+' мин';const h=Math.floor(m/60);if(h<24)return'через '+h+' ч'+(m%60?' '+(m%60)+' мин':'');const dd=Math.round(h/24);return'через '+dd+' дн'}
+function evRow(e,withDay){const d=evDate(e),now=Date.now(),past=d<now-60000,soon=!past&&d-now<3*3600000;
+  const fp=(e.f?'прогноз '+esc(e.f):'')+(e.f&&e.p?' · ':'')+(e.p?'пред. '+esc(e.p):'');
+  return '<li class="ev'+(past?' past':'')+(soon?' soon':'')+'"><span class="ev-t num">'+(withDay?d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+', ':'')+hm(d)+'</span><i class="imp imp-'+String(e.i||'Low').toLowerCase()+'" title="'+(IMPRU[e.i]||esc(e.i))+'"></i><span class="ev-c num">'+esc(e.c==='All'?'ВСЕ':e.c)+'</span><span class="ev-n">'+esc(e.t)+(fp?'<small>'+fp+'</small>':'')+'</span><span class="ev-u">'+(past?'прошло':until(d))+'</span></li>'}
+function renderNextEv(){const box=document.getElementById('next-ev');if(!box)return;if(!CAL){box.innerHTML='';return}
+  const ccy=CCY[cur]||['USD'],now=Date.now();
+  const up=CAL.events.filter(e=>ccy.includes(e.c)&&IMP[e.i]>=2&&evDate(e)>now-60000).slice(0,4);
+  box.innerHTML='<div class="why-t">Ближайшие события по '+ccy.filter(x=>x!=='All').join(', ')+'</div>'+(up.length?'<ul class="evs">'+up.map(e=>evRow(e,true)).join('')+'</ul>':'<p class="cal-empty">До конца недели важных событий по этим валютам нет. Календарь следующей недели появится в воскресенье.</p>')}
+function renderCal(){const box=document.getElementById('cal');if(!box)return;
+  document.querySelectorAll('[data-lvl]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lvl===calLevel));
+  document.getElementById('cal-mine').checked=calMine;
+  if(!CAL){box.innerHTML='<p class="cal-empty">Календарь загружается…</p>';return}
+  const min=calLevel==='High'?3:calLevel==='Medium'?2:0,ccy=CCY[cur]||['USD'];
+  const ev=CAL.events.filter(e=>(IMP[e.i]??1)>=min&&(!calMine||ccy.includes(e.c)));
+  const today=new Date().toDateString();let html='',day='';
+  for(const e of ev){const d=evDate(e),k=d.toDateString();if(k!==day){if(day)html+='</ul>';day=k;html+='<div class="cal-day'+(k===today?' today':'')+'">'+(k===today?'Сегодня, ':'')+d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+'</div><ul class="evs">'}html+=evRow(e,false)}
+  if(day)html+='</ul>';
+  box.innerHTML=html||'<p class="cal-empty">Нет событий под этот фильтр.</p>';
+  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  document.getElementById('cal-meta').textContent='Время — ваше ('+tz+'). Источник: Forex Factory, обновлено '+ago(CAL.updatedAt)+'. В фиде нет фактических значений — только прогноз и предыдущее.'}
+function saveCal(){try{localStorage.setItem('cotpulse.cal',JSON.stringify({l:calLevel,m:calMine}))}catch(e){}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-lvl]');if(b){calLevel=b.dataset.lvl;saveCal();renderCal()}});
+document.getElementById('cal-mine').addEventListener('change',e=>{calMine=e.target.checked;saveCal();renderCal()});
+function loadCal(){return getJSON('data/calendar.json').then(c=>{CAL=c;renderCal();renderNextEv()}).catch(()=>{if(!CAL){const b=document.getElementById('cal');if(b)b.innerHTML='<p class="cal-empty">Календарь появится после ближайшего обновления данных.</p>'}})}
+setInterval(()=>{if(!document.hidden)loadCal()},PRICE_POLL_MS);
+setInterval(()=>{if(CAL&&!document.hidden){renderCal();renderNextEv()}},60000);
+
 async function load(){
   try{
     [COT,PX,AI]=await Promise.all([getJSON('data/cot.json'),getJSON('data/prices.json').catch(()=>null),getJSON('data/ai.json').catch(()=>null)]);
@@ -357,7 +434,7 @@ let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>COT&&dr
 setInterval(()=>{if(!document.hidden)refresh()},PRICE_POLL_MS);
 setInterval(()=>{if(PX)document.getElementById('px-age').textContent=ago(PX.updatedAt)},60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&COT)refresh()});
-load();
+load().then(loadCal);
 })();
 </script>
 </body>
