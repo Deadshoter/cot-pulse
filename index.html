@@ -7,7 +7,7 @@
 <title>The Mental Analytics</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
 /* Layout: one column. Asset picker → one verdict card (fund side, strength, weekly shift) → compact list of all markets */
 :root{
@@ -162,10 +162,108 @@ header{padding-bottom:16px;border-bottom:1px solid var(--line)}
 .foot{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:24px;align-items:start}
 @media (max-width:980px){.foot{grid-template-columns:minmax(0,1fr)}}
 .foot .note{margin:0}
+
+/* ===== Liquid-glass theme (KerikFX): black stage, glass panels, floating chrome glyphs ===== */
+html:root:not(#_){
+  --bg:#030405; --surface:rgba(255,255,255,.035); --solid:#0a0c0f; --sunk:rgba(255,255,255,.055);
+  --ink:#EEF1F4; --muted:#9AA3AC; --faint:#626A72; --line:rgba(255,255,255,.09); --line-hi:rgba(255,255,255,.22);
+  --long:#4BD69D; --long-soft:rgba(75,214,157,.12); --short:#FF7B6C; --short-soft:rgba(255,123,108,.12);
+  --med:#F0B65A; --accent:#FFFFFF;
+  color-scheme:dark;
+}
+html{background:#030405}
+body{background:radial-gradient(1200px 700px at 78% -10%,rgba(255,255,255,.07),transparent 60%),radial-gradient(900px 600px at -10% 110%,rgba(255,255,255,.05),transparent 60%),#030405;min-height:100vh}
+.wrap{position:relative;z-index:1}
+
+/* background glyph layer */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.bg img{position:absolute;mix-blend-mode:screen;opacity:var(--o,.5);will-change:transform;animation:drift var(--d,30s) ease-in-out var(--dl,0s) infinite alternate;height:auto}
+.bg span{position:absolute;font-family:"Fredoka",system-ui,sans-serif;font-weight:700;line-height:1;color:#fff;filter:url(#glass);opacity:var(--o,.5);
+  will-change:transform;animation:drift var(--d,30s) ease-in-out var(--dl,0s) infinite alternate}
+@keyframes drift{
+  0%{transform:translate3d(0,0,0) rotate(var(--r0,-6deg))}
+  50%{transform:translate3d(var(--dx,30px),var(--dy,-40px),0) rotate(var(--r1,4deg))}
+  100%{transform:translate3d(calc(var(--dx,30px)*-.6),calc(var(--dy,-40px)*.5),0) rotate(var(--r0,-6deg))}}
+.bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,4,5,.25),rgba(3,4,5,.55) 70%,rgba(3,4,5,.8))}
+@media (max-width:760px){.bg > :nth-child(n+7){display:none}.bg span{font-size:calc(var(--fs) * .55)!important}.bg img{width:calc(var(--w) * .55)!important}}
+@media (prefers-reduced-motion:reduce){.bg span,.bg img{animation:none!important}}
+
+/* header */
+header{align-items:center;padding-bottom:18px}
+.asof{background:var(--surface);border:1px solid var(--line);padding:6px 12px;border-radius:999px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+
+/* glass panels */
+.verdict,.list,.cal,details.guide{background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.018));border:1px solid var(--line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 24px 60px rgba(0,0,0,.55);backdrop-filter:blur(18px) saturate(130%);-webkit-backdrop-filter:blur(18px) saturate(130%);border-radius:20px}
+.verdict{position:relative;overflow:hidden}
+.verdict::before{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(500px 220px at 15% 0%,rgba(255,255,255,.08),transparent 70%)}
+.why{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px}
+.v-side.long{text-shadow:0 0 36px rgba(75,214,157,.35)}
+.v-side.short{text-shadow:0 0 36px rgba(255,123,108,.35)}
+.col-h{color:var(--muted)}
+
+/* chips & controls */
+.chip{background:rgba(255,255,255,.04);border-color:var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:border-color .2s,background .2s,transform .2s}
+.chip:hover{border-color:var(--line-hi);transform:translateY(-1px)}
+.chip[aria-pressed="true"]{background:linear-gradient(180deg,#fff,#cdd3d9);color:#050607;border-color:#fff;box-shadow:0 0 22px rgba(255,255,255,.18)}
+.seg{border-color:var(--line);background:rgba(255,255,255,.03)}
+.seg button[aria-pressed="true"]{background:linear-gradient(180deg,#fff,#cdd3d9);color:#050607}
+.item:hover,.item[aria-current="true"]{background:rgba(255,255,255,.05)}
+.rel{background:rgba(255,255,255,.04)}
+.meter i{background:#050607;border-color:#fff}
+.ev.soon{background:rgba(255,255,255,.05)}
+.side{position:static!important}
+
+/* calculator */
+.calc .c-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.c-wide{grid-column:1/-1}
+.fld{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);min-width:0}
+.fld > span{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.fld input,.fld select{width:100%;min-width:0;font:inherit;font-size:15px;color:var(--ink);background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none;transition:border-color .2s,box-shadow .2s}
+.fld input:focus,.fld select:focus{border-color:var(--line-hi);box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+.fld select option,.fld select optgroup{background:#0b0d10;color:var(--ink)}
+.c-inline{display:flex;align-items:center;gap:8px}
+.c-inline input{flex:1}
+.c-inline em{font-style:normal;color:var(--muted);font-size:13px;min-width:2.2em}
+.seg-sm button{padding:6px 10px;font-size:12.5px}
+.fld > .seg{align-self:flex-start}
+.c-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.c-link{background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;text-decoration-color:var(--line-hi);text-underline-offset:3px;font-size:12px;cursor:pointer}
+.c-out{margin-top:16px;padding:16px 18px;border-radius:16px;background:radial-gradient(400px 160px at 20% 0%,rgba(255,255,255,.09),transparent 70%),rgba(0,0,0,.3);border:1px solid var(--line)}
+.c-big{display:flex;align-items:baseline;gap:10px}
+.c-big .num{font-size:46px;font-weight:500;line-height:1;color:#fff;text-shadow:0 0 28px rgba(255,255,255,.18)}
+.c-big small{font-size:16px;color:var(--muted)}
+.c-dl{margin:12px 0 0;display:grid;gap:7px}
+.c-dl div{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px;font-size:13.5px}
+.c-dl dt{color:var(--muted)} .c-dl dd{margin:0}
+.c-sub{display:block;color:var(--faint);font-size:12px;font-family:var(--f-body)}
+.c-msg{margin:0;color:var(--muted);font-size:14px}
+.c-warn{margin:12px 0 0;padding:9px 12px;border-radius:10px;background:rgba(240,182,90,.1);color:#F3CF95;font-size:13px}
+.c-adv{margin-top:14px;font-size:13px}
+.c-adv summary{cursor:pointer;color:var(--muted)}
+.c-adv[open] summary{margin-bottom:10px}
+.c-spec{margin:0 0 10px;color:var(--ink);font-family:var(--f-mono);font-size:12.5px}
+@media (max-width:420px){.calc .c-grid,.c-two{grid-template-columns:minmax(0,1fr)}.c-dl div{grid-template-columns:minmax(0,1fr)}}
+
+/* TradingView widgets */
+.tv{border-radius:14px;overflow:hidden;min-height:120px}
+.tv-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tv-note{font-size:12px;color:var(--faint);margin-top:10px}
 </style>
 
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="glass" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+<feGaussianBlur in="SourceAlpha" stdDeviation="6" result="soft"/><feComponentTransfer in="soft" result="shape"><feFuncA type="linear" slope="3" intercept="-1"/></feComponentTransfer>
+<feGaussianBlur in="shape" stdDeviation="12" result="height"/><feFlood flood-color="#000" flood-opacity=".7"/><feComposite in2="shape" operator="in" result="body"/>
+<feSpecularLighting in="height" surfaceScale="7" specularConstant=".35" specularExponent="18" lighting-color="#fff" result="sheen"><feDistantLight azimuth="235" elevation="38"/></feSpecularLighting><feComposite in="sheen" in2="shape" operator="in" result="sheenIn"/>
+<feSpecularLighting in="height" surfaceScale="9" specularConstant="1.7" specularExponent="90" lighting-color="#fff" result="hot"><feDistantLight azimuth="225" elevation="55"/></feSpecularLighting><feComposite in="hot" in2="shape" operator="in" result="hotIn"/>
+<feMorphology in="shape" operator="erode" radius="1.5" result="inner"/><feComposite in="shape" in2="inner" operator="out" result="rim"/><feGaussianBlur in="rim" stdDeviation=".7" result="rimS"/><feFlood flood-color="#fff" flood-opacity=".95"/><feComposite in2="rimS" operator="in" result="rimC"/>
+<feMorphology in="shape" operator="erode" radius="7" result="inner2"/><feGaussianBlur in="inner2" stdDeviation="2" result="inner2b"/><feComposite in="inner2b" in2="inner2" operator="arithmetic" k2="1" k3="-1" result="ring"/><feFlood flood-color="#fff" flood-opacity=".35"/><feComposite in2="ring" operator="in" result="ringC"/>
+<feGaussianBlur in="rim" stdDeviation="6" result="glow0"/><feFlood flood-color="#fff" flood-opacity=".18"/><feComposite in2="glow0" operator="in" result="glow"/>
+<feMerge><feMergeNode in="glow"/><feMergeNode in="body"/><feMergeNode in="sheenIn"/><feMergeNode in="ringC"/><feMergeNode in="rimC"/><feMergeNode in="hotIn"/></feMerge></filter></svg>
+<div class="bg" aria-hidden="true"><img src="assets/m.webp" alt="" style="--w:300px;width:300px;left:58%;top:6%;--o:.55;--d:36s;--dl:-4s;--r0:-5deg;--r1:6deg;--dx:-50px;--dy:40px"><img src="assets/kerikfx.webp" alt="" style="--w:460px;width:460px;left:-4%;top:46%;--o:.4;--d:44s;--dl:-12s;--r0:-4deg;--r1:3deg;--dx:70px;--dy:-30px"><span style="--fs:300px;font-size:300px;left:6%;top:58%;--o:0.55;--d:34s;--dl:-3s;--r0:-8deg;--r1:5deg;--dx:40px;--dy:-60px">M</span><span style="--fs:190px;font-size:190px;left:78%;top:8%;--o:0.4;--d:28s;--dl:-8s;--r0:10deg;--r1:-4deg;--dx:-50px;--dy:40px">F</span><span style="--fs:230px;font-size:230px;left:88%;top:62%;--o:0.45;--d:38s;--dl:-6s;--r0:6deg;--r1:-6deg;--dx:-30px;--dy:-50px">X</span><span style="--fs:170px;font-size:170px;left:44%;top:82%;--o:0.35;--d:30s;--dl:-2s;--r0:-12deg;--r1:6deg;--dx:60px;--dy:-30px">$</span><span style="--fs:150px;font-size:150px;left:26%;top:14%;--o:0.3;--d:26s;--dl:-5s;--r0:8deg;--r1:-8deg;--dx:40px;--dy:50px">€</span><span style="--fs:130px;font-size:130px;left:62%;top:40%;--o:0.22;--d:32s;--dl:-9s;--r0:-6deg;--r1:8deg;--dx:-40px;--dy:-40px">%</span><span style="--fs:120px;font-size:120px;left:14%;top:90%;--o:0.25;--d:36s;--dl:-3s;--r0:6deg;--r1:-10deg;--dx:30px;--dy:-60px">¥</span><span style="--fs:160px;font-size:160px;left:94%;top:30%;--o:0.3;--d:40s;--dl:-7s;--r0:-10deg;--r1:4deg;--dx:-60px;--dy:30px">K</span></div>
 <div class="wrap">
   <header>
     <div class="brand">The Mental Analytics<small>by KerikFX</small></div>
@@ -216,18 +314,62 @@ header{padding-bottom:16px;border-bottom:1px solid var(--line)}
   </div>
 
   <aside class="col side">
-  <div class="col-h">Новости и события</div>
-  <section class="cal"><div id="next-ev"></div></section>
-  <section class="cal" aria-live="polite">
-    <div class="panel-h"><h2>Экономический календарь</h2><span class="src">Forex Factory</span></div>
-    <div class="cal-ctl">
-      <div class="seg" role="group" aria-label="Важность">
-        <button type="button" data-lvl="High">Важные</button><button type="button" data-lvl="Medium">+ средние</button><button type="button" data-lvl="Low">Все</button>
+  <div class="col-h">Инструменты</div>
+  <section class="cal calc" aria-label="Калькулятор лота">
+    <div class="panel-h"><h2>Калькулятор лота</h2><span class="src" id="c-live"></span></div>
+    <div class="c-grid">
+      <label class="fld c-wide"><span>Инструмент</span><select id="c-inst"></select></label>
+      <label class="fld"><span>Валюта счёта</span><select id="c-acct"></select></label>
+      <label class="fld"><span>Баланс</span><input id="c-bal" type="number" inputmode="decimal" min="0" step="any"></label>
+      <div class="fld"><span>Риск на сделку</span>
+        <div class="c-inline"><input id="c-risk" type="number" inputmode="decimal" min="0" step="any" aria-label="Риск"><em id="c-risk-u">%</em>
+          <div class="seg seg-sm" role="group" aria-label="Риск в"><button type="button" data-rm="pct">%</button><button type="button" data-rm="money">Сумма</button></div></div>
       </div>
-      <label class="chk"><input type="checkbox" id="cal-mine"> Только валюты выбранного актива</label>
+      <div class="fld c-wide"><span>Стоп-лосс</span>
+        <div class="seg seg-sm" role="group" aria-label="Стоп в"><button type="button" data-sm="pips">В пипсах</button><button type="button" data-sm="price">По ценам</button></div>
+      </div>
+      <label class="fld c-wide" id="c-pips-row"><span>Размер стопа, пипсов</span><input id="c-pips" type="number" inputmode="decimal" min="0" step="any"></label>
+      <div class="c-wide c-two" id="c-price-row" hidden>
+        <label class="fld"><span>Цена входа <button type="button" class="c-link" id="c-fill">взять текущую</button></span><input id="c-entry" type="number" inputmode="decimal" step="any"></label>
+        <label class="fld"><span>Цена стоп-лосса</span><input id="c-stop" type="number" inputmode="decimal" step="any"></label>
+      </div>
     </div>
-    <div id="cal"></div>
-    <div class="cal-meta" id="cal-meta"></div>
+    <div id="c-out" class="c-out" aria-live="polite"></div>
+    <details class="c-adv" id="c-adv">
+      <summary>Параметры контракта у вашего брокера</summary>
+      <p class="c-spec" id="c-spec"></p>
+      <div class="c-two">
+        <label class="fld"><span>Размер 1 лота</span><input id="c-cs" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label class="fld"><span>Размер 1 пипса</span><input id="c-pip" type="number" inputmode="decimal" min="0" step="any"></label>
+      </div>
+      <label class="fld" id="c-qrow" hidden><span>Валюта котировки</span><select id="c-q"></select></label>
+      <p class="c-sub">По умолчанию стоят стандартные значения. У некоторых брокеров контракты отличаются, особенно для индексов, нефти и крипты — сверьте со спецификацией в терминале и при необходимости поправьте.</p>
+    </details>
+  </section>
+
+  <div class="col-h">Новости и события</div>
+  <section class="cal" aria-label="Новости">
+    <div class="panel-h"><h2>Новости <span class="src" id="news-t"></span></h2><span class="src">в реальном времени</span></div>
+    <div class="tv-tabs">
+      <div class="seg seg-sm" role="group" aria-label="Лента новостей">
+        <button type="button" data-news="asset">По активу</button><button type="button" data-news="forex">Форекс</button><button type="button" data-news="all">Все рынки</button>
+      </div>
+    </div>
+    <div class="tv" id="tv-news"></div>
+  </section>
+
+  <section class="cal" aria-label="Экономический календарь">
+    <div class="panel-h"><h2>Экономический календарь</h2><span class="src">факт, прогноз, пред.</span></div>
+    <div class="tv-tabs">
+      <div class="seg seg-sm" role="group" aria-label="Важность">
+        <button type="button" data-cimp="high">Важные</button><button type="button" data-cimp="med">+ средние</button><button type="button" data-cimp="all">Все</button>
+      </div>
+      <div class="seg seg-sm" role="group" aria-label="Страны">
+        <button type="button" data-calm="all">Все страны</button><button type="button" data-calm="asset">По активу</button>
+      </div>
+    </div>
+    <div class="tv" id="tv-cal"></div>
+    <p class="tv-note">Новости и календарь — виджеты TradingView: обновляются сами по мере публикации, факт появляется сразу после выхода данных, в календаре можно листать на неделю вперёд. Время — ваше.</p>
   </section>
 
   </aside>
@@ -407,40 +549,156 @@ function drawSpark(){
   document.getElementById('sp-cap').textContent=sgn(d[d.length-1])+' контр.';
 }
 
-// ---------- economic calendar (Forex Factory) ----------
-const CCY={'088691':['USD'],'084691':['USD'],'085692':['USD','CNY'],'067651':['USD','All'],'023651':['USD'],'098662':['USD'],'099741':['EUR','USD'],'096742':['GBP','USD'],'097741':['JPY','USD'],'232741':['AUD','CNY','USD'],'090741':['CAD','USD'],'13874A':['USD'],'209742':['USD'],'133741':['USD'],'146021':['USD']};
-const IMP={High:3,Medium:2,Low:1,Holiday:0};
-const IMPRU={High:'Высокая важность',Medium:'Средняя важность',Low:'Низкая важность',Holiday:'Выходной на рынке'};
-let CAL=null,calLevel='High',calMine=false;
-try{const o=JSON.parse(localStorage.getItem('cotpulse.cal')||'{}');if(o.l)calLevel=o.l;calMine=!!o.m}catch(e){}
-const evDate=e=>new Date(e.d);
-const hm=d=>d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-function until(d){const m=Math.round((d-Date.now())/60000);if(m<0)return'';if(m<60)return'через '+m+' мин';const h=Math.floor(m/60);if(h<24)return'через '+h+' ч'+(m%60?' '+(m%60)+' мин':'');const dd=Math.round(h/24);return'через '+dd+' дн'}
-function evRow(e,withDay){const d=evDate(e),now=Date.now(),past=d<now-60000,soon=!past&&d-now<3*3600000;
-  const fp=(e.f?'прогноз '+esc(e.f):'')+(e.f&&e.p?' · ':'')+(e.p?'пред. '+esc(e.p):'');
-  return '<li class="ev'+(past?' past':'')+(soon?' soon':'')+'"><span class="ev-t num">'+(withDay?d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+', ':'')+hm(d)+'</span><i class="imp imp-'+String(e.i||'Low').toLowerCase()+'" title="'+(IMPRU[e.i]||esc(e.i))+'"></i><span class="ev-c num">'+esc(e.c==='All'?'ВСЕ':e.c)+'</span><span class="ev-n">'+esc(e.t)+(fp?'<small>'+fp+'</small>':'')+'</span><span class="ev-u">'+(past?'прошло':until(d))+'</span></li>'}
-function renderNextEv(){const box=document.getElementById('next-ev');if(!box)return;if(!CAL){box.innerHTML='';return}
-  const ccy=CCY[cur]||['USD'],now=Date.now();
-  const up=CAL.events.filter(e=>ccy.includes(e.c)&&IMP[e.i]>=2&&evDate(e)>now-60000).slice(0,4);
-  box.innerHTML='<div class="why-t">Ближайшие события по '+ccy.filter(x=>x!=='All').join(', ')+'</div>'+(up.length?'<ul class="evs">'+up.map(e=>evRow(e,true)).join('')+'</ul>':'<p class="cal-empty">До конца недели важных событий по этим валютам нет. Календарь следующей недели появится в воскресенье.</p>')}
-function renderCal(){const box=document.getElementById('cal');if(!box)return;
-  document.querySelectorAll('[data-lvl]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lvl===calLevel));
-  document.getElementById('cal-mine').checked=calMine;
-  if(!CAL){box.innerHTML='<p class="cal-empty">Календарь загружается…</p>';return}
-  const min=calLevel==='High'?3:calLevel==='Medium'?2:0,ccy=CCY[cur]||['USD'];
-  const ev=CAL.events.filter(e=>(IMP[e.i]??1)>=min&&(!calMine||ccy.includes(e.c)));
-  const today=new Date().toDateString();let html='',day='';
-  for(const e of ev){const d=evDate(e),k=d.toDateString();if(k!==day){if(day)html+='</ul>';day=k;html+='<div class="cal-day'+(k===today?' today':'')+'">'+(k===today?'Сегодня, ':'')+d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+'</div><ul class="evs">'}html+=evRow(e,false)}
-  if(day)html+='</ul>';
-  box.innerHTML=html||'<p class="cal-empty">Нет событий под этот фильтр.</p>';
-  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
-  document.getElementById('cal-meta').textContent='Время — ваше ('+tz+'). Источник: Forex Factory, обновлено '+ago(CAL.updatedAt)+'. В фиде нет фактических значений — только прогноз и предыдущее.'}
-function saveCal(){try{localStorage.setItem('cotpulse.cal',JSON.stringify({l:calLevel,m:calMine}))}catch(e){}}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-lvl]');if(b){calLevel=b.dataset.lvl;saveCal();renderCal()}});
-document.getElementById('cal-mine').addEventListener('change',e=>{calMine=e.target.checked;saveCal();renderCal()});
-function loadCal(){return getJSON('data/calendar.json').then(c=>{CAL=c;renderCal();renderNextEv()}).catch(()=>{if(!CAL){const b=document.getElementById('cal');if(b)b.innerHTML='<p class="cal-empty">Календарь появится после ближайшего обновления данных.</p>'}})}
+// ---------- lot size calculator ----------
+const CCYS=['EUR','GBP','AUD','NZD','USD','CAD','CHF','JPY'];
+const INSTR=[];
+for(let i=0;i<CCYS.length;i++)for(let j=i+1;j<CCYS.length;j++){
+  const b=CCYS[i],q=CCYS[j];INSTR.push({id:b+q,g:'Форекс',b,q,cs:100000,pip:q==='JPY'?0.01:0.0001,unit:b});
+}
+INSTR.push(
+ {id:'XAUUSD',n:'XAUUSD · Золото',g:'Металлы',q:'USD',cs:100,pip:0.1,unit:'унц.'},
+ {id:'XAGUSD',n:'XAGUSD · Серебро',g:'Металлы',q:'USD',cs:5000,pip:0.01,unit:'унц.'},
+ {id:'XPTUSD',n:'XPTUSD · Платина',g:'Металлы',q:'USD',cs:100,pip:0.1,unit:'унц.'},
+ {id:'US30',n:'US30 · Dow Jones',g:'Индексы',q:'USD',cs:1,pip:1,unit:'контр.'},
+ {id:'US500',n:'US500 · S&P 500',g:'Индексы',q:'USD',cs:1,pip:1,unit:'контр.'},
+ {id:'NAS100',n:'NAS100 · Nasdaq 100',g:'Индексы',q:'USD',cs:1,pip:1,unit:'контр.'},
+ {id:'GER40',n:'GER40 · DAX',g:'Индексы',q:'EUR',cs:1,pip:1,unit:'контр.'},
+ {id:'UK100',n:'UK100 · FTSE 100',g:'Индексы',q:'GBP',cs:1,pip:1,unit:'контр.'},
+ {id:'JP225',n:'JP225 · Nikkei 225',g:'Индексы',q:'JPY',cs:1,pip:1,unit:'контр.'},
+ {id:'USOIL',n:'USOIL · Нефть WTI',g:'Энергоносители',q:'USD',cs:1000,pip:0.01,unit:'барр.'},
+ {id:'UKOIL',n:'UKOIL · Нефть Brent',g:'Энергоносители',q:'USD',cs:1000,pip:0.01,unit:'барр.'},
+ {id:'NGAS',n:'NGAS · Природный газ',g:'Энергоносители',q:'USD',cs:10000,pip:0.001,unit:'MMBtu'},
+ {id:'BTCUSD',n:'BTCUSD · Bitcoin',g:'Криптовалюты',q:'USD',cs:1,pip:1,unit:'BTC'},
+ {id:'ETHUSD',n:'ETHUSD · Ether',g:'Криптовалюты',q:'USD',cs:1,pip:0.1,unit:'ETH'},
+ {id:'CUSTOM',n:'Свой инструмент…',g:'Другое',q:'USD',cs:1,pip:1,unit:'ед.'}
+);
+const ACCT=['USD','EUR','GBP','JPY','CHF','CAD','AUD'];
+let FXD=null;
+const calc={inst:'EURUSD',acct:'USD',bal:10000,risk:1,riskMode:'pct',stopMode:'pips',pips:20,entry:'',stop:'',cs:'',pip:'',q:'USD'};
+try{Object.assign(calc,JSON.parse(localStorage.getItem('cotpulse.calc')||'{}'))}catch(e){}
+const instById=id=>INSTR.find(x=>x.id===id)||INSTR[0];
+function usdRate(ccy){
+  if(ccy==='USD')return 1;
+  if(FXD&&FXD.usd&&FXD.usd[ccy])return FXD.usd[ccy];
+  const fut={EUR:'099741',GBP:'096742',JPY:'097741',AUD:'232741',CAD:'090741'}[ccy];
+  const p=fut&&PX&&PX.markets&&PX.markets[fut];
+  return p&&p.last?p.last:null;
+}
+function livePrice(ins){
+  if(ins.g==='Форекс'){const a=usdRate(ins.b),b=usdRate(ins.q);return a&&b?a/b:null}
+  return FXD&&FXD.px?FXD.px[ins.id]||null:null;
+}
+const dec=v=>{const s=String(v);return s.includes('.')?s.split('.')[1].length:0};
+function fmtN(v,d){return v==null||!isFinite(v)?'—':v.toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function money(v,c){return fmtN(v,c==='JPY'?0:2)+' '+c}
+function calcInit(){
+  const sel=document.getElementById('c-inst');
+  const groups={};INSTR.forEach(x=>(groups[x.g]=groups[x.g]||[]).push(x));
+  sel.innerHTML=Object.entries(groups).map(([g,xs])=>'<optgroup label="'+g+'">'+xs.map(x=>'<option value="'+x.id+'">'+esc(x.n||x.id.slice(0,3)+'/'+x.id.slice(3))+'</option>').join('')+'</optgroup>').join('');
+  document.getElementById('c-acct').innerHTML=ACCT.map(c=>'<option>'+c+'</option>').join('');
+  document.getElementById('c-q').innerHTML=CCYS.map(c=>'<option>'+c+'</option>').join('');
+  const f=(id,k)=>{const el=document.getElementById(id);el.value=calc[k];el.addEventListener('input',()=>{calc[k]=el.value;calcRun()})};
+  f('c-bal','bal');f('c-risk','risk');f('c-pips','pips');f('c-entry','entry');f('c-stop','stop');f('c-cs','cs');f('c-pip','pip');
+  const s=(id,k,cb)=>{const el=document.getElementById(id);el.value=calc[k];el.addEventListener('change',()=>{calc[k]=el.value;if(cb)cb();calcRun()})};
+  s('c-inst','inst',()=>{calc.cs='';calc.pip='';calc.entry='';calc.stop='';syncSpecs();});
+  s('c-acct','acct');s('c-q','q');
+  document.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{calc.riskMode=b.dataset.rm;calcRun()}));
+  document.querySelectorAll('[data-sm]').forEach(b=>b.addEventListener('click',()=>{calc.stopMode=b.dataset.sm;if(calc.stopMode==='price'&&!calc.entry){const p=livePrice(instById(calc.inst));if(p){calc.entry=String(+p.toPrecision(6));document.getElementById('c-entry').value=calc.entry}}calcRun()}));
+  document.getElementById('c-fill').addEventListener('click',()=>{const p=livePrice(instById(calc.inst));if(p){calc.entry=String(+p.toPrecision(6));document.getElementById('c-entry').value=calc.entry;calcRun()}});
+  syncSpecs();calcRun();
+}
+function syncSpecs(){
+  const ins=instById(calc.inst);
+  document.getElementById('c-cs').placeholder=ins.cs;document.getElementById('c-pip').placeholder=ins.pip;
+  document.getElementById('c-cs').value=calc.cs;document.getElementById('c-pip').value=calc.pip;
+  document.getElementById('c-entry').value=calc.entry;document.getElementById('c-stop').value=calc.stop;
+  document.getElementById('c-qrow').hidden=calc.inst!=='CUSTOM';
+  if(calc.inst==='CUSTOM')document.getElementById('c-adv').open=true;
+}
+function calcRun(){
+  try{localStorage.setItem('cotpulse.calc',JSON.stringify(calc))}catch(e){}
+  document.querySelectorAll('[data-rm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.rm===calc.riskMode));
+  document.querySelectorAll('[data-sm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sm===calc.stopMode));
+  document.getElementById('c-pips-row').hidden=calc.stopMode!=='pips';
+  document.getElementById('c-price-row').hidden=calc.stopMode!=='price';
+  document.getElementById('c-risk-u').textContent=calc.riskMode==='pct'?'%':calc.acct;
+  const ins=instById(calc.inst),q=calc.inst==='CUSTOM'?calc.q:ins.q;
+  const cs=parseFloat(calc.cs)||ins.cs,pip=parseFloat(calc.pip)||ins.pip;
+  const live=livePrice(ins);
+  document.getElementById('c-live').textContent=live?'Текущая цена ≈ '+fmtN(live,Math.min(6,Math.max(dec(pip)+1,2))):'';
+  document.getElementById('c-fill').hidden=!live;
+  document.getElementById('c-spec').textContent='1 лот = '+fmtN(cs,0)+' '+(ins.unit||'ед.')+' · 1 пипс = '+pip+' · цена в '+q;
+  const out=document.getElementById('c-out'),bal=parseFloat(calc.bal),rv=parseFloat(calc.risk);
+  const fail=msg=>{out.innerHTML='<p class="c-msg">'+msg+'</p>'};
+  if(!(bal>0))return fail('Введите баланс счёта.');
+  if(!(rv>0))return fail('Введите риск на сделку.');
+  const riskMoney=calc.riskMode==='pct'?bal*rv/100:rv;
+  let dist;
+  if(calc.stopMode==='pips'){const p=parseFloat(calc.pips);if(!(p>0))return fail('Введите стоп-лосс в пипсах.');dist=p*pip}
+  else{const e=parseFloat(calc.entry),s=parseFloat(calc.stop);if(!(e>0&&s>0))return fail('Введите цену входа и цену стоп-лосса.');dist=Math.abs(e-s);if(!dist)return fail('Цена входа и стопа совпадают.')}
+  const rq=usdRate(q),ra=usdRate(calc.acct);
+  if(!rq||!ra)return fail('Нет курса '+(rq?calc.acct:q)+' к USD — дождитесь обновления данных или выберите валюту счёта USD.');
+  const conv=rq/ra,lossPerLot=dist*cs*conv,pipVal=pip*cs*conv;
+  const lots=riskMoney/lossPerLot,lotsR=Math.floor(lots*100+1e-9)/100;
+  const actual=lotsR*lossPerLot,pips=dist/pip;
+  let warn='';
+  if(lotsR<0.01)warn='<p class="c-warn">Риск меньше минимального лота 0,01. При 0,01 лота убыток по стопу составит '+money(0.01*lossPerLot,calc.acct)+' ('+fmtN(0.01*lossPerLot/bal*100,2)+'% счёта).</p>';
+  else if(calc.riskMode==='pct'&&rv>3)warn='<p class="c-warn">Риск больше 3% на сделку — это агрессивно: серия из 5 убыточных сделок уменьшит счёт примерно на '+fmtN((1-Math.pow(1-rv/100,5))*100,0)+'%.</p>';
+  out.innerHTML='<div class="c-big"><span class="num">'+fmtN(Math.max(lotsR,0),2)+'</span><small>лота</small></div>'+
+   '<dl class="c-dl">'+
+   '<div><dt>Риск</dt><dd class="num">'+money(riskMoney,calc.acct)+(calc.riskMode==='pct'?'':' · '+fmtN(riskMoney/bal*100,2)+'%')+'</dd></div>'+
+   '<div><dt>Стоп</dt><dd class="num">'+fmtN(pips,1)+' пипс. · '+fmtN(dist,dec(pip)||2)+' по цене</dd></div>'+
+   '<div><dt>Стоимость пипса</dt><dd class="num">'+money(pipVal,calc.acct)+' на 1 лот'+(lotsR>=0.01?' · '+money(pipVal*lotsR,calc.acct)+' на позицию':'')+'</dd></div>'+
+   '<div><dt>Объём позиции</dt><dd class="num">'+fmtN(lotsR*cs,cs>=100?0:2)+' '+(ins.unit||'ед.')+'</dd></div>'+
+   '<div><dt>Убыток по стопу</dt><dd class="num">'+money(actual,calc.acct)+' <span class="c-sub">точный лот '+fmtN(lots,4)+', округлён вниз до 0,01</span></dd></div>'+
+   '</dl>'+warn;
+}
+
+// ---------- news & economic calendar (TradingView widgets, real time) ----------
+const TVSYM={'088691':'OANDA:XAUUSD','084691':'OANDA:XAGUSD','085692':'COMEX:HG1!','067651':'TVC:USOIL','023651':'NYMEX:NG1!','098662':'TVC:DXY','099741':'FX:EURUSD','096742':'FX:GBPUSD','097741':'FX:USDJPY','232741':'FX:AUDUSD','090741':'FX:USDCAD','13874A':'SP:SPX','209742':'NASDAQ:NDX','133741':'BITSTAMP:BTCUSD','146021':'BITSTAMP:ETHUSD'};
+const TVCTRY={'088691':'us','084691':'us','085692':'us,cn','067651':'us','023651':'us','098662':'us','099741':'eu,us','096742':'gb,us','097741':'jp,us','232741':'au,cn,us','090741':'ca,us','13874A':'us','209742':'us','133741':'us','146021':'us'};
+const ALLCTRY='us,eu,gb,jp,cn,au,ca,ch,nz,de';
+let newsMode='asset',calMode='all',calImp='high',tvNewsKey='',tvCalKey='';
+try{const o=JSON.parse(localStorage.getItem('cotpulse.tv')||'{}');newsMode=o.n||newsMode;calMode=o.c||calMode;calImp=o.i||calImp}catch(e){}
+function tvEmbed(box,file,cfg){
+  box.innerHTML='';
+  const c=document.createElement('div');c.className='tradingview-widget-container';
+  const w=document.createElement('div');w.className='tradingview-widget-container__widget';c.appendChild(w);
+  const s=document.createElement('script');s.type='text/javascript';s.async=true;
+  s.src='https://s3.tradingview.com/external-embedding/'+file;s.text=JSON.stringify(cfg);c.appendChild(s);
+  box.appendChild(c);
+}
+function tvSync(force){
+  const nb=document.getElementById('tv-news'),cb=document.getElementById('tv-cal');if(!nb||!cb)return;
+  const a=ASSETS.find(x=>x.c===cur);
+  document.querySelectorAll('[data-news]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.news===newsMode));
+  document.querySelectorAll('[data-calm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.calm===calMode));
+  document.querySelectorAll('[data-cimp]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cimp===calImp));
+  const nk=newsMode==='asset'?'s:'+TVSYM[cur]:'m:'+newsMode;
+  if(force||nk!==tvNewsKey){tvNewsKey=nk;
+    const cfg={isTransparent:true,displayMode:'regular',width:'100%',height:520,colorTheme:'dark',locale:'ru'};
+    if(newsMode==='asset'){cfg.feedMode='symbol';cfg.symbol=TVSYM[cur]}else if(newsMode==='all'){cfg.feedMode='all_symbols'}else{cfg.feedMode='market';cfg.market=newsMode}
+    tvEmbed(nb,'embed-widget-timeline.js',cfg)}
+  document.getElementById('news-t').textContent=newsMode==='asset'?a.n:'';
+  const ck=calMode+'|'+calImp+'|'+(calMode==='asset'?TVCTRY[cur]:'');
+  if(force||ck!==tvCalKey){tvCalKey=ck;
+    tvEmbed(cb,'embed-widget-events.js',{colorTheme:'dark',isTransparent:true,width:'100%',height:620,locale:'ru',
+      importanceFilter:calImp==='high'?'1':calImp==='med'?'0,1':'-1,0,1',countryFilter:calMode==='asset'?TVCTRY[cur]:ALLCTRY})}
+}
+function saveTv(){try{localStorage.setItem('cotpulse.tv',JSON.stringify({n:newsMode,c:calMode,i:calImp}))}catch(e){}}
+document.addEventListener('click',e=>{
+  const n=e.target.closest('[data-news]');if(n){newsMode=n.dataset.news;saveTv();tvSync()}
+  const c=e.target.closest('[data-calm]');if(c){calMode=c.dataset.calm;saveTv();tvSync()}
+  const i=e.target.closest('[data-cimp]');if(i){calImp=i.dataset.cimp;saveTv();tvSync()}
+});
+// hooks called by render()/load()
+let CAL=null;
+function renderNextEv(){tvSync()}
+function renderCal(){}
+function loadCal(){
+  return getJSON('data/fx.json').then(f=>{FXD=f}).catch(()=>{}).then(()=>{if(!window.__calcReady){window.__calcReady=1;calcInit()}else calcRun()});
+}
 setInterval(()=>{if(!document.hidden)loadCal()},PRICE_POLL_MS);
-setInterval(()=>{if(CAL&&!document.hidden){renderCal();renderNextEv()}},60000);
 
 async function load(){
   try{

@@ -55,6 +55,14 @@ jobs:
           pip install --quiet --disable-pip-version-check yfinance
           python -u update_prices.py
 
+      - name: Exchange rates for the lot calculator
+        if: github.event_name != 'push'
+        working-directory: scripts
+        continue-on-error: true
+        run: |
+          pip install --quiet --disable-pip-version-check yfinance
+          python -u update_fx.py
+
       - name: Economic calendar (Forex Factory)
         if: github.event_name != 'push'
         working-directory: scripts
