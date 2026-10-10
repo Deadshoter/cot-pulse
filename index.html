@@ -248,6 +248,7 @@ header{align-items:center;padding-bottom:18px}
 
 /* TradingView widgets */
 .tv{border-radius:14px;overflow:hidden;min-height:120px}
+.tv iframe{color-scheme:light}
 .tv-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px}
 .tv-note{font-size:12px;color:var(--faint);margin-top:10px}
 </style>
@@ -658,7 +659,7 @@ function calcRun(){
 const TVSYM={'088691':'OANDA:XAUUSD','084691':'OANDA:XAGUSD','085692':'COMEX:HG1!','067651':'TVC:USOIL','023651':'NYMEX:NG1!','098662':'TVC:DXY','099741':'FX:EURUSD','096742':'FX:GBPUSD','097741':'FX:USDJPY','232741':'FX:AUDUSD','090741':'FX:USDCAD','13874A':'SP:SPX','209742':'NASDAQ:NDX','133741':'BITSTAMP:BTCUSD','146021':'BITSTAMP:ETHUSD'};
 const TVCTRY={'088691':'us','084691':'us','085692':'us,cn','067651':'us','023651':'us','098662':'us','099741':'eu,us','096742':'gb,us','097741':'jp,us','232741':'au,cn,us','090741':'ca,us','13874A':'us','209742':'us','133741':'us','146021':'us'};
 const ALLCTRY='us,eu,gb,jp,cn,au,ca,ch,nz,de';
-let newsMode='asset',calMode='all',calImp='high',tvNewsKey='',tvCalKey='';
+let newsMode='forex',calMode='all',calImp='high',tvNewsKey='',tvCalKey='';
 try{const o=JSON.parse(localStorage.getItem('cotpulse.tv')||'{}');newsMode=o.n||newsMode;calMode=o.c||calMode;calImp=o.i||calImp}catch(e){}
 function tvEmbed(box,file,cfg){
   box.innerHTML='';
