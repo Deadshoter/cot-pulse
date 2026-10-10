@@ -286,6 +286,8 @@ header{align-items:center;padding-bottom:18px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .tv-note .imp2{width:12px;height:9px;margin:0 2px}
 @media (min-width:981px){.side{position:sticky!important;top:calc(env(safe-area-inset-top,0px) + 16px)}}
+.c-rr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--muted)}
+.c-tp b{color:var(--ink)}
 </style>
 
 </head>
@@ -370,6 +372,7 @@ header{align-items:center;padding-bottom:18px}
         <label class="fld"><span>Цена стоп-лосса</span><input id="c-stop" type="number" inputmode="decimal" step="any"></label>
       </div>
     </div>
+    <div class="c-rr"><span>Тейк-профит, риск : прибыль</span><div class="seg seg-sm" role="group" aria-label="Риск к прибыли"><button type="button" data-rr="1">1:1</button><button type="button" data-rr="2">1:2</button><button type="button" data-rr="3">1:3</button></div></div>
     <div id="c-out" class="c-out" aria-live="polite"></div>
     <details class="c-adv" id="c-adv">
       <summary>Параметры контракта у вашего брокера</summary>
@@ -607,7 +610,7 @@ INSTR.push(
 );
 const ACCT=['USD','EUR','GBP','JPY','CHF','CAD','AUD'];
 let FXD=null;
-const calc={inst:'EURUSD',acct:'USD',bal:10000,risk:1,riskMode:'pct',stopMode:'pips',pips:20,entry:'',stop:'',cs:'',pip:'',q:'USD'};
+const calc={inst:'EURUSD',acct:'USD',bal:10000,risk:1,riskMode:'pct',stopMode:'pips',pips:20,entry:'',stop:'',cs:'',pip:'',q:'USD',rr:'2'};
 try{Object.assign(calc,JSON.parse(localStorage.getItem('cotpulse.calc')||'{}'))}catch(e){}
 const instById=id=>INSTR.find(x=>x.id===id)||INSTR[0];
 function usdRate(ccy){
@@ -637,6 +640,7 @@ function calcInit(){
   s('c-acct','acct');s('c-q','q');
   document.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{calc.riskMode=b.dataset.rm;calcRun()}));
   document.querySelectorAll('[data-sm]').forEach(b=>b.addEventListener('click',()=>{calc.stopMode=b.dataset.sm;if(calc.stopMode==='price'&&!calc.entry){const p=livePrice(instById(calc.inst));if(p){calc.entry=String(+p.toPrecision(6));document.getElementById('c-entry').value=calc.entry}}calcRun()}));
+  document.querySelectorAll('[data-rr]').forEach(b=>b.addEventListener('click',()=>{calc.rr=calc.rr===b.dataset.rr?'':b.dataset.rr;calcRun()}));
   document.getElementById('c-fill').addEventListener('click',()=>{const p=livePrice(instById(calc.inst));if(p){calc.entry=String(+p.toPrecision(6));document.getElementById('c-entry').value=calc.entry;calcRun()}});
   syncSpecs();calcRun();
 }
@@ -652,6 +656,7 @@ function calcRun(){
   try{localStorage.setItem('cotpulse.calc',JSON.stringify(calc))}catch(e){}
   document.querySelectorAll('[data-rm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.rm===calc.riskMode));
   document.querySelectorAll('[data-sm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sm===calc.stopMode));
+  document.querySelectorAll('[data-rr]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.rr===calc.rr));
   document.getElementById('c-pips-row').hidden=calc.stopMode!=='pips';
   document.getElementById('c-price-row').hidden=calc.stopMode!=='price';
   document.getElementById('c-risk-u').textContent=calc.riskMode==='pct'?'%':calc.acct;
@@ -677,6 +682,11 @@ function calcRun(){
   let warn='';
   if(lotsR<0.01)warn='<p class="c-warn">Риск меньше минимального лота 0,01. При 0,01 лота убыток по стопу составит '+money(0.01*lossPerLot,calc.acct)+' ('+fmtN(0.01*lossPerLot/bal*100,2)+'% счёта).</p>';
   else if(calc.riskMode==='pct'&&rv>3)warn='<p class="c-warn">Риск больше 3% на сделку — это агрессивно: серия из 5 убыточных сделок уменьшит счёт примерно на '+fmtN((1-Math.pow(1-rv/100,5))*100,0)+'%.</p>';
+  let rrRows='';
+  if(calc.rr){const R=+calc.rr,lotsU=lotsR>=0.01?lotsR:0.01,profit=lotsU*lossPerLot*R,dp=Math.min(6,Math.max(dec(pip)+1,2));
+    let tp=fmtN(pips*R,1)+' пипс. · '+fmtN(dist*R,dec(pip)||2)+' по цене';
+    if(calc.stopMode==='price'){const e=parseFloat(calc.entry),st=parseFloat(calc.stop),lg=st<e,tpp=lg?e+dist*R:e-dist*R;tp='<b>'+fmtN(tpp,dp)+'</b> · '+(lg?'покупка':'продажа')+' · '+tp}
+    rrRows='<div class="c-tp"><dt>Тейк-профит 1:'+R+'</dt><dd class="num">'+tp+'</dd></div><div><dt>Прибыль по тейку</dt><dd class="num up">+'+money(profit,calc.acct)+'</dd></div>'}
   out.innerHTML='<div class="c-big"><span class="num">'+fmtN(Math.max(lotsR,0),2)+'</span><small>лота</small></div>'+
    '<dl class="c-dl">'+
    '<div><dt>Риск</dt><dd class="num">'+money(riskMoney,calc.acct)+(calc.riskMode==='pct'?'':' · '+fmtN(riskMoney/bal*100,2)+'%')+'</dd></div>'+
@@ -684,7 +694,7 @@ function calcRun(){
    '<div><dt>Стоимость пипса</dt><dd class="num">'+money(pipVal,calc.acct)+' на 1 лот'+(lotsR>=0.01?' · '+money(pipVal*lotsR,calc.acct)+' на позицию':'')+'</dd></div>'+
    '<div><dt>Объём позиции</dt><dd class="num">'+fmtN(lotsR*cs,cs>=100?0:2)+' '+(ins.unit||'ед.')+'</dd></div>'+
    '<div><dt>Убыток по стопу</dt><dd class="num">'+money(actual,calc.acct)+' <span class="c-sub">точный лот '+fmtN(lots,4)+', округлён вниз до 0,01</span></dd></div>'+
-   '</dl>'+warn;
+   rrRows+'</dl>'+warn;
 }
 
 // ---------- economic calendar (own table, data: TradingView via robot) ----------
