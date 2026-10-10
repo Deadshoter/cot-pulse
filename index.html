@@ -901,6 +901,9 @@ load().then(loadCal).then(loadSent);
 .fm-amb i{position:absolute;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.07);filter:blur(10px);animation:fmFloat 9s ease-in-out infinite}
 .fm-amb i:nth-child(2){left:55%;top:10%;animation-delay:-3s;width:80px;height:80px}
 @keyframes fmFloat{0%,100%{transform:translate(10px,0)}50%{transform:translate(60px,10px)}}
+.fm-st{display:flex;align-items:center;gap:8px;margin:-4px 0 10px;font-size:12px;color:var(--muted)}
+.fm-st span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-st button{flex:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);cursor:pointer;font-size:15px}
 .fm-ctl{display:flex;align-items:center;gap:10px}
 .fm-play{width:38px;height:38px;border-radius:50%;border:0;background:var(--ink);color:#0b0d0f;cursor:pointer;display:grid;place-items:center;flex:none}
 .fm-vol{flex:1;accent-color:var(--long)}
@@ -916,6 +919,7 @@ load().then(loadCal).then(loadSent);
   <div class="fm-h"><span>Музыка для фокуса</span><button type="button" class="fm-x" id="fm-x" aria-label="Свернуть">×</button></div>
   <div class="fm-tabs" role="group" aria-label="Режим"><button type="button" data-fm="lofi">Lo-fi</button><button type="button" data-fm="ambient">Ambient</button></div>
   <div class="fm-vid" id="fm-vid" hidden></div>
+  <div class="fm-st" id="fm-st" hidden><span id="fm-title">Нажми ▶, чтобы включить станцию</span><button type="button" id="fm-next" title="Другая станция" aria-label="Другая станция">⟳</button></div>
   <div class="fm-amb" id="fm-amb" hidden><i></i><i></i><span>Медитативный эмбиент · генерируется заново, не повторяется</span></div>
   <div class="fm-ctl">
     <button type="button" class="fm-play" id="fm-play" aria-label="Играть"><svg id="fm-pi" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 5v14l12-7z" fill="currentColor"/></svg></button>
@@ -933,22 +937,26 @@ try{const s=JSON.parse(localStorage.getItem('mental.focus')||'{}');if(s.m)mode=s
 function save(){try{localStorage.setItem('mental.focus',JSON.stringify({m:mode,v:+vol.value}))}catch(e){}}
 function ui(){
   document.querySelectorAll('[data-fm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fm===mode));
-  vidBox.hidden=mode!=='lofi';amb.hidden=mode!=='ambient';
-  note.innerHTML=mode==='lofi'?'Прямой эфир <a href="https://www.youtube.com/@LofiGirl" target="_blank" rel="noopener">Lofi Girl</a> на YouTube: музыка идёт без остановки.':'Мягкие аккорды и колокольчики собираются случайно прямо в браузере, тональность меняется каждые пару минут.';
+  vidBox.hidden=mode!=='lofi';$('fm-st').hidden=mode!=='lofi';amb.hidden=mode!=='ambient';
+  note.innerHTML=mode==='lofi'?'Lo-fi радио и миксы с YouTube (Lofi Girl, Chillhop). Станция выбирается случайно, ⟳ — переключить.':'Мягкие аккорды и колокольчики собираются случайно прямо в браузере, тональность меняется каждые пару минут.';
   btn.classList.toggle('on',playing);play.setAttribute('aria-label',playing?'Пауза':'Играть');pi.innerHTML=playing?ICON_PAUSE:ICON_PLAY;
 }
-/* ---------- Lo-fi: YouTube live (Lofi Girl) ---------- */
-let yt=null,ytReady=false,ytWant=false;
+/* ---------- Lo-fi: YouTube live stations and long mixes (embeddable) ---------- */
+const STATIONS=['7NOSDKb0HlU','5yx6BWlEVcY','qH3fETPsqXU','4xDzrJKXOOY','lTRiuFIWV54','wAPCSnAhhC8','1fueZCTYkpA','n61ULEU7CO0'];
+let yt=null,ytReady=false,ytWant=false,cur=-1,recent=[],fails=0;
+function pickStation(){const pool=STATIONS.map((_,i)=>i).filter(i=>!recent.includes(i));const i=pool[Math.floor(Math.random()*pool.length)];recent.push(i);if(recent.length>4)recent.shift();return i}
+function setTitle(){const t=$('fm-title');if(!t)return;let s='';try{s=yt.getVideoData().title||''}catch(e){}t.textContent=s||'Загрузка станции…'}
 function ytInit(){
   if(yt)return;
-  const f=document.createElement('iframe');
-  f.src='https://www.youtube.com/embed/live_stream?channel=UCSJ4gkVC6NrvII8umztf0Ow&enablejsapi=1&playsinline=1&controls=0&modestbranding=1&rel=0&origin='+encodeURIComponent(location.origin);
-  f.title='Lofi Girl — прямой эфир';f.allow='autoplay; encrypted-media; picture-in-picture';
-  vidBox.appendChild(f);
-  const go=()=>{yt=new YT.Player(f,{events:{onReady:()=>{ytReady=true;yt.setVolume(+vol.value);if(ytWant)yt.playVideo()},
-    onStateChange:e=>{if(e.data===1){playing=true;ui()}else if(e.data===2&&mode==='lofi'){playing=false;ui()}}}})};
+  const d=document.createElement('div');d.id='fm-yt';vidBox.appendChild(d);
+  cur=pickStation();
+  const go=()=>{yt=new YT.Player('fm-yt',{videoId:STATIONS[cur],playerVars:{playsinline:1,controls:0,modestbranding:1,rel:0,iv_load_policy:3,origin:location.origin},
+    events:{onReady:()=>{ytReady=true;yt.setVolume(+vol.value);setTitle();if(ytWant)yt.playVideo()},
+      onStateChange:e=>{setTitle();if(e.data===1){fails=0;playing=true;ui()}else if(e.data===2&&mode==='lofi'&&!ytWant){playing=false;ui()}else if(e.data===0){nextStation()}},
+      onError:()=>{if(++fails<STATIONS.length)nextStation();else{playing=false;ui();note.textContent='YouTube сейчас недоступен — включи режим Ambient.'}}}})};
   if(window.YT&&YT.Player)go();else{window.onYouTubeIframeAPIReady=go;const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)}
 }
+function nextStation(){if(!ytReady)return;cur=pickStation();if(ytWant)yt.loadVideoById(STATIONS[cur]);else yt.cueVideoById(STATIONS[cur]);setTimeout(setTitle,1500)}
 function ytPlay(){ytWant=true;ytInit();if(ytReady)yt.playVideo()}
 function ytStop(){ytWant=false;if(ytReady)yt.pauseVideo()}
 /* ---------- Ambient: generative Web Audio ---------- */
@@ -1006,6 +1014,7 @@ btn.addEventListener('click',()=>{const o=!panel.classList.contains('open');pane
 $('fm-x').addEventListener('click',()=>{panel.classList.remove('open');btn.setAttribute('aria-expanded','false')});
 play.addEventListener('click',()=>{if(playing)stop();else{if(mode==='lofi')playing=true;start();ui()}});
 document.querySelectorAll('[data-fm]').forEach(b=>b.addEventListener('click',()=>{if(mode===b.dataset.fm)return;const was=playing;stop();mode=b.dataset.fm;save();ui();if(mode==='lofi')ytInit();if(was){if(mode==='lofi')playing=true;start();ui()}}));
+$('fm-next').addEventListener('click',()=>{ytInit();nextStation()});
 vol.addEventListener('input',()=>{save();if(ytReady)yt.setVolume(+vol.value);if(ac&&master&&mode==='ambient'&&playing)master.gain.setTargetAtTime(+vol.value/100*.9,ac.currentTime,.1)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('open')){panel.classList.remove('open');btn.setAttribute('aria-expanded','false')}});
 ui();
